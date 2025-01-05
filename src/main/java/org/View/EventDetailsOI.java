@@ -1,4 +1,6 @@
 package org.View;
 
-public class EventDetailsOI extends BaseOI {
+import org.View.organizer.OrganizerView;
+
+public class EventDetailsOI extends OrganizerView {
 }

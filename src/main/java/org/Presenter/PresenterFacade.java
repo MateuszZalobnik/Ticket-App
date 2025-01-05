@@ -1,9 +1,6 @@
 package org.Presenter;
 
-import org.Model.Event;
-import org.Model.Ticket;
-import org.Model.TicketToReSell;
-import org.Model.User;
+import org.Model.*;
 
 public class PresenterFacade implements IPresenter {
     @Override
@@ -17,8 +14,9 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
-    public void GetEventsById(int id) {
-
+    public Event[] GetEventsById(Integer id) {
+        var model = new Facade();
+        return model.GetEventsById(id);
     }
 
     @Override

@@ -1,7 +1,6 @@
 package org.Model;
 
 public class Event {
-
 	public String sellStartDate;
 	public String saleEndDate;
 	public String location;
@@ -10,5 +9,4 @@ public class Event {
 	public Opinion[] opinions;
 	public TicketPool[] ticketPools;
 	private BlockedUser[] blockedUsers;
-
 }

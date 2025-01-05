@@ -27,7 +27,7 @@ public interface IPresenter {
 	 * 
 	 * @param id
 	 */
-	void GetEventsById(int id);
+	Event[] GetEventsById(Integer id);
 
 	/**
 	 * 
