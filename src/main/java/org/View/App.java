@@ -6,7 +6,6 @@ import javafx.stage.Stage;
 import org.View.organizer.OrganizerView;
 
 public class App extends Application {
-//kom
 	private IDisplay[] view;
 
 	@Override
