@@ -5,7 +5,7 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/test2";
+    final String connectionString = "jdbc:postgresql://localhost:5432/teat_1";
     private Properties props;
 
 
@@ -16,7 +16,7 @@ public class Facade implements IModel {
 
     }
 
-    private Connection getConnection() {
+    public Connection getConnection() {
         try {
             return DriverManager.getConnection(connectionString, props);
         } catch (SQLException e) {
@@ -34,7 +34,9 @@ public class Facade implements IModel {
     }
 
     @Override
-    public void AddUser() {
+    public void AddUser(User user) {
+        getConnection();
+
     }
 
     @Override

@@ -4,7 +4,7 @@ import java.sql.SQLException;
 
 public interface IModel {
 
-	void AddUser() throws SQLException;
+	void AddUser(User user) throws SQLException;
 
 	/**
 	 * 

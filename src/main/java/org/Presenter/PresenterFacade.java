@@ -5,12 +5,39 @@ import org.Model.*;
 public class PresenterFacade implements IPresenter {
     @Override
     public void CreateAccount(String login, String email, String password, int role) {
-        
+        Facade facade = new Facade();
+        if (role == 0){
+            Client client = new Client();
+            facade.AddUser(client);
+            //powinno otiweraz widok dla klineta
+        }else if (role == 1){
+            Organizer organizer = new Organizer();
+            facade.AddUser(organizer);
+            //powinno otiweraz widok dla organizartora
+        }
     }
 
     @Override
-    public User SignIn(String login, String password) {
-        return null;
+    public User LogIn(String login, String password) {
+        Facade facade = new Facade();
+        User user = new User();
+        // TODO sprawdzic czy login w bazie a hasło poporawne
+        if (facade.GetUserByCredentials(login, password) != null){
+            user = facade.GetUserByCredentials(login, password);
+            if (user.role == 0){
+                Client client = new Client();
+                //powinno otiweraz widok dla klineta
+                return client;
+            } else if (user.role == 1) {
+                Organizer organizer = new Organizer();
+                //powinno otiweraz widok dla organizartora
+                return organizer;
+            }
+        }else {
+            // nie znalenon użytkowania w bazie lub hasło jest nie te
+            return null;
+        }
+        return user;
     }
 
     @Override
