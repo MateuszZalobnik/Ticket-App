@@ -26,6 +26,10 @@ public class PresenterFacade implements IPresenter {
         var event = new Event();
         event.sellStartDate = request.startDate;
         event.saleEndDate = request.endDate;
+        event.organizer = request.organizer;
+//        event.ticketPools = request.ticketPools;
+        event.location = request.place;
+
         // itd
 
         model.AddEvent(event);

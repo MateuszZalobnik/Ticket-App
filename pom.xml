@@ -40,18 +40,24 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>run</id>
+                        <!-- Default configuration for running -->
+                        <id>default-cli</id>
                         <configuration>
                             <mainClass>org.View.App</mainClass>
                         </configuration>
                     </execution>
                     <execution>
+                        <!-- Configuration for debugging -->
                         <id>debug</id>
                         <configuration>
+                            <exec.args>--add-opens javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</exec.args>
+
+                            <!--                            <options>-->
+                            <!--                                <option>-->
+                            <!--                                    -agentlib:jdwp=transport=dt_socket,server=n,address=localhost:8000,suspend=y-->
+                            <!--                                </option>-->
+                            <!--                            </options>-->
                             <mainClass>org.View.App</mainClass>
-                            <options>
-                                <option>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005</option>
-                            </options>
                         </configuration>
                     </execution>
                 </executions>
