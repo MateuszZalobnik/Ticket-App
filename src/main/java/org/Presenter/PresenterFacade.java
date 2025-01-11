@@ -47,15 +47,26 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
+    public void CreateEvent(CreateEventRequest request) {
+        IModel model = new Facade();
+
+        var event = new Event();
+        event.sellStartDate = request.startDate;
+        event.saleEndDate = request.endDate;
+        event.organizer = request.organizer;
+//        event.ticketPools = request.ticketPools;
+        event.location = request.place;
+
+        // itd
+
+        model.AddEvent(event);
+    }
+    
     public Event[] GetHistoricalEventsById(Integer id) {
         var model = new Facade();
         return model.GetHistoricalEventsById(id);
     }
 
-    @Override
-    public org.Model.Event[] CreateEvent(CreateEventRequest request) {
-        return new Event[0];
-    }
 
     @Override
     public void AddOpinion(int userId, int rate, String comment, int eventId) {
