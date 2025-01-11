@@ -13,6 +13,7 @@ public class App extends Application {
 	public void start(Stage stage) {
 		OrganizerView organizerView = new OrganizerView();
 
+		// na cały ekran
 		Scene scene = new Scene(organizerView.getView(), 800, 600);
 		stage.setScene(scene);
 		stage.setTitle("Organizator");

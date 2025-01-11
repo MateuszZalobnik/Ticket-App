@@ -9,5 +9,4 @@ public class TicketPool {
 	public String saleEndDate;
 	public boolean shouldStartWhenPrviousPoolEnd;
 	public int poolNumber;
-
 }
