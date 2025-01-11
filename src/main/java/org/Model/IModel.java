@@ -4,7 +4,7 @@ import java.sql.SQLException;
 
 public interface IModel {
 
-	void AddUser() throws SQLException;
+	void AddUser(User user) throws SQLException;
 
 	/**
 	 * 
@@ -18,6 +18,11 @@ public interface IModel {
 	 * @param event
 	 */
 	void AddEvent(Event event);
+	/**
+	 *
+	 * @param userId
+	 */
+	Event[] GetHistoricalEventsById(Integer userId);
 
 	/**
 	 * 

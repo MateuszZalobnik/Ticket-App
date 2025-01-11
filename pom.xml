@@ -12,8 +12,8 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javafx.version>19</javafx.version>
-        <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
+        <javafx.version>23</javafx.version>
+        <javafx.maven.plugin.version>0.0.4</javafx.maven.plugin.version>
     </properties>
 
     <dependencies>
@@ -47,16 +47,9 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <!-- Configuration for debugging -->
                         <id>debug</id>
                         <configuration>
                             <exec.args>--add-opens javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</exec.args>
-
-                            <!--                            <options>-->
-                            <!--                                <option>-->
-                            <!--                                    -agentlib:jdwp=transport=dt_socket,server=n,address=localhost:8000,suspend=y-->
-                            <!--                                </option>-->
-                            <!--                            </options>-->
                             <mainClass>org.View.App</mainClass>
                         </configuration>
                     </execution>
@@ -67,3 +60,4 @@
 
 
 </project>
+

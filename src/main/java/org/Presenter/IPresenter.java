@@ -21,13 +21,19 @@ public interface IPresenter {
 	 * @param login
 	 * @param password
 	 */
-	User SignIn(String login, String password);
+	User LogIn(String login, String password);
 
 	/**
 	 * 
 	 * @param id
 	 */
 	Event[] GetEventsById(Integer id);
+
+	/**
+	 *
+	 * @param id
+	 */
+	Event[] GetHistoricalEventsById(Integer id);
 
 	/**
 	 * 
