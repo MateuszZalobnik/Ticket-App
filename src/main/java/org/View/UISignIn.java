@@ -90,7 +90,7 @@ public class UISignIn extends BaseUILogin {
                 System.out.println(login + " " + email + " " + password + " " + role_int);
             } else {
                 // Show warning if any required field is missing
-                warningLabel.setText("Proszę uzupełnić wszystkie wymagane pola!");
+                warningLabel.setText("Proszę uzupełnić wszystkie wymagane pola!"); // cos nie działa
                 warningLabel.setVisible(true);
             }
         });

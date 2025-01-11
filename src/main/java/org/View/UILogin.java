@@ -10,6 +10,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+import org.Model.Facade;
 import org.Presenter.PresenterFacade;
 
 import java.awt.*;
@@ -54,14 +55,15 @@ public class UILogin extends BaseUILogin {
             stage.setScene(scene);
         });
 
-        /// Event for sending info about log in to system
-        registerLink.setOnMouseClicked(event -> {
+        // Event for sending info about log in to system
+        loginButton.setOnMouseClicked(event -> {
             String login = loginField.getText().trim();
             String password = passwordField.getText().trim();
 
             PresenterFacade presenterFacade = new PresenterFacade();
             presenterFacade.LogIn(login, password);
-
+            Facade facade = new Facade();
+            facade.getConnection();
         });
 
         return gridPane;
