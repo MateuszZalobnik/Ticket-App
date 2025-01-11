@@ -1,6 +1,6 @@
 package org.Model;
 
-public abstract class User {
+public class User {
 
 	public String login;
 	public String password;

@@ -34,7 +34,9 @@ public class Facade implements IModel {
     }
 
     @Override
-    public void AddUser() {
+    public void AddUser(User user) {
+        getConnection();
+
     }
 
     @Override
