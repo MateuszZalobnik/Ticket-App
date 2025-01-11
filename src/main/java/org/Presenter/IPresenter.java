@@ -33,7 +33,7 @@ public interface IPresenter {
 	 * 
 	 * @param request
 	 */
-	Event[] CreateEvent(CreateEventRequest request);
+	void CreateEvent(CreateEventRequest request);
 
 	/**
 	 * 

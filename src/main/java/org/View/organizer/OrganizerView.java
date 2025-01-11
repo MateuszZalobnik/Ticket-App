@@ -3,6 +3,7 @@ package org.View.organizer;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
+import org.View.organizer.components.CreateNewEvent;
 import org.View.organizer.components.MyEventsList;
 import org.View.shared.components.NavigationBar;
 
@@ -25,7 +26,7 @@ public class OrganizerView {
             switch (viewName) {
                 case "Moje wydarzenia" -> switchView(new MyEventsList("This is View 1"));
                 case "Historia wydarzeń" -> switchView(new StackPane(new Text("This is View 2")));
-                case "Dodaj wydarzenie" -> switchView(new StackPane(new Text("This is View 3")));
+                case "Dodaj wydarzenie" -> switchView(new CreateNewEvent("This is View 3"));
             }
         }, "Jan Kowalski");
 

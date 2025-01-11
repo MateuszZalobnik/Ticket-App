@@ -20,8 +20,15 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
-    public org.Model.Event[] CreateEvent(CreateEventRequest request) {
-        return new Event[0];
+    public void CreateEvent(CreateEventRequest request) {
+        IModel model = new Facade();
+
+        var event = new Event();
+        event.sellStartDate = request.startDate;
+        event.saleEndDate = request.endDate;
+        // itd
+
+        model.AddEvent(event);
     }
 
     @Override
