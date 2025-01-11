@@ -60,10 +60,13 @@ public class PresenterFacade implements IPresenter {
         // itd
 
         model.AddEvent(event);
+    }
+    
     public Event[] GetHistoricalEventsById(Integer id) {
         var model = new Facade();
         return model.GetHistoricalEventsById(id);
     }
+
 
     @Override
     public void AddOpinion(int userId, int rate, String comment, int eventId) {
