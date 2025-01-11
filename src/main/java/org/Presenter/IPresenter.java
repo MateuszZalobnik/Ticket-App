@@ -30,6 +30,12 @@ public interface IPresenter {
 	Event[] GetEventsById(Integer id);
 
 	/**
+	 *
+	 * @param id
+	 */
+	Event[] GetHistoricalEventsById(Integer id);
+
+	/**
 	 * 
 	 * @param request
 	 */

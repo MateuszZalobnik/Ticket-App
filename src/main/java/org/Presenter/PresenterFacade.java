@@ -47,6 +47,12 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
+    public Event[] GetHistoricalEventsById(Integer id) {
+        var model = new Facade();
+        return model.GetHistoricalEventsById(id);
+    }
+
+    @Override
     public org.Model.Event[] CreateEvent(CreateEventRequest request) {
         return new Event[0];
     }

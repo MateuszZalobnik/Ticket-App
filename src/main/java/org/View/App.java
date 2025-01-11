@@ -8,7 +8,6 @@ import javafx.stage.Stage;
 import org.Model.Facade;
 
 public class App extends Application {
-
 	private IDisplay[] view;
 	private Scene scene;
 

@@ -18,6 +18,11 @@ public interface IModel {
 	 * @param event
 	 */
 	void AddEvent(Event event);
+	/**
+	 *
+	 * @param userId
+	 */
+	Event[] GetHistoricalEventsById(Integer userId);
 
 	/**
 	 * 
