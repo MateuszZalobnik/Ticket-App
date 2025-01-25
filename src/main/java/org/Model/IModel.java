@@ -44,9 +44,10 @@ public interface IModel {
 
 	/**
 	 * 
-	 * @param ticket
+	 * @param ticketPoolId
+	 * @param userId
 	 */
-	void AddTicket(Ticket ticket);
+	void AddTicket(int ticketPoolId, int userId);
 
 	/**
 	 * 

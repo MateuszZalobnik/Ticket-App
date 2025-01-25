@@ -6,11 +6,16 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import org.Model.Organizer;
 import org.Presenter.CreateEventRequest;
+import org.Presenter.PresenterFacade;
+import org.Presenter.TicketPoolRequest;
 
 public class CreateNewEvent extends StackPane {
 
-    public CreateNewEvent(String text) {
+    private final Organizer organizer;
+    public CreateNewEvent(Organizer organizer) {
+        this.organizer = organizer;
         // Główny kontener
         StackPane root = new StackPane();
         root.setPadding(new Insets(20));
@@ -133,29 +138,18 @@ public class CreateNewEvent extends StackPane {
             String endDate = endDatePicker.getValue() != null ? endDatePicker.getValue().toString() : null;
 
             // Zbieranie danych z puli biletów
-            String poolNumber = poolNumberField.getText();
-            String quantity = quantityField.getText();
-            String price = priceField.getText();
+            int poolNumber = Integer.parseInt(poolNumberField.getText());
+            int quantity = Integer.parseInt(quantityField.getText());
+            float price = Float.parseFloat(priceField.getText());
             String poolStartDate = poolStartDatePicker.getValue() != null ? poolStartDatePicker.getValue().toString() : null;
             String poolEndDate = poolEndDatePicker.getValue() != null ? poolEndDatePicker.getValue().toString() : null;
             boolean startAfter = startAfterPrevious.isSelected();
 
-            // Tworzenie obiektu CreateEventRequest
-            CreateEventRequest request = new CreateEventRequest(); // obiekt przekazywany do bazy danych z danymi
-            request.startDate = startDate;
-            request.endDate = endDate;
-            request.place = eventLocation;
+            var ticketPool = new TicketPoolRequest(quantity, price, poolStartDate, poolEndDate, startAfter, poolNumber);
+            CreateEventRequest request = new CreateEventRequest(startDate, endDate, eventLocation, eventName, organizer.id, new TicketPoolRequest[]{ticketPool});
 
-
-            // Debugowanie: wyświetlanie danych w konsoli
-            System.out.println("Zapisano wydarzenie:");
-            System.out.println("Nazwa: " + eventName);
-            System.out.println("Miejsce: " + eventLocation);
-            System.out.println("Data rozpoczęcia: " + startDate);
-            System.out.println("Data zakończenia: " + endDate);
-            System.out.println("Pula biletów - Numer: " + poolNumber + ", Ilość: " + quantity + ", Cena: " + price);
-            System.out.println("Data rozpoczęcia puli: " + poolStartDate + ", Data zakończenia puli: " + poolEndDate);
-            System.out.println("Rozpocznij po wyczerpaniu: " + startAfter);
+            var facade = new PresenterFacade();
+            facade.CreateEvent(request);
         });
 
         // Dodanie sekcji do głównego kontenera

@@ -6,14 +6,20 @@ public class PresenterFacade implements IPresenter {
     @Override
     public void CreateAccount(String login, String email, String password, int role) {
         Facade facade = new Facade();
-        if (role == 0){
+        if (role == 0) {
             Client client = new Client();
+            client.email = email;
+            client.login = login;
+            client.password = password;
+            client.role = UserRole.Client;
             facade.AddUser(client);
-            //powinno otiweraz widok dla klineta
-        }else if (role == 1){
+        } else if (role == 1) {
             Organizer organizer = new Organizer();
+            organizer.email = email;
+            organizer.login = login;
+            organizer.password = password;
+            organizer.role = UserRole.Organizer;
             facade.AddUser(organizer);
-            //powinno otiweraz widok dla organizartora
         }
     }
 
@@ -21,19 +27,17 @@ public class PresenterFacade implements IPresenter {
     public User LogIn(String login, String password) {
         Facade facade = new Facade();
         User user = new User();
-        // TODO sprawdzic czy login w bazie a hasło poporawne
-        if (facade.GetUserByCredentials(login, password) != null){
+        user.login = login;
+        user.password = password;
+
+        if (facade.GetUserByCredentials(login, password) != null) {
             user = facade.GetUserByCredentials(login, password);
-            if (user.role == 0){
-                Client client = new Client();
-                //powinno otiweraz widok dla klineta
-                return client;
-            } else if (user.role == 1) {
-                Organizer organizer = new Organizer();
-                //powinno otiweraz widok dla organizartora
-                return organizer;
+            if (user.role == UserRole.Client) {
+                return new Client(user.id, user.login, user.email, user.role);
+            } else if (user.role == UserRole.Organizer) {
+                return new Organizer(user.id, user.login, user.email, user.role);
             }
-        }else {
+        } else {
             // nie znalenon użytkowania w bazie lub hasło jest nie te
             return null;
         }
@@ -54,14 +58,24 @@ public class PresenterFacade implements IPresenter {
         event.sellStartDate = request.startDate;
         event.saleEndDate = request.endDate;
         event.organizer = request.organizer;
-//        event.ticketPools = request.ticketPools;
         event.location = request.place;
+        event.userId = request.userId;
 
-        // itd
+        for (var pool : request.ticketPools) {
+            var ticketPool = new TicketPool(
+                    -1,
+                    pool.amountOfTickets,
+                    pool.price,
+                    pool.sellStartDate,
+                    pool.sellEndDate,
+                    false,
+                    pool.number);
 
+            event.addTicketPool(ticketPool);
+        }
         model.AddEvent(event);
     }
-    
+
     public Event[] GetHistoricalEventsById(Integer id) {
         var model = new Facade();
         return model.GetHistoricalEventsById(id);
