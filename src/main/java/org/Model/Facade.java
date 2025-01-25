@@ -5,7 +5,7 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/teat_1";
+    final String connectionString = "jdbc:postgresql://localhost:5432/test2";
     private Properties props;
 
 
@@ -35,19 +35,122 @@ public class Facade implements IModel {
 
     @Override
     public void AddUser(User user) {
-        getConnection();
+        String procedureCall = "CALL public.rejestracja_uzytkownika(?, ?, ?, ?)";
 
+        try (Connection connection = getConnection();
+             CallableStatement callableStatement = connection.prepareCall(procedureCall)) {
+
+            callableStatement.setString(1, user.login);
+            callableStatement.setString(2, user.password);
+            callableStatement.setString(3, user.email);
+            callableStatement.setInt(4, user.role.ordinal());
+
+            callableStatement.execute();
+
+            System.out.println("Użytkownik został pomyślnie dodany.");
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas dodawania użytkownika: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     public User GetUserByCredentials(String login, String password) {
+        String functionCall = "SELECT public.logowanie_uzytkownika(?, ?)";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(functionCall)) {
+
+            preparedStatement.setString(1, login);
+            preparedStatement.setString(2, password);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                int userId = resultSet.getInt(1);
+
+                String query = "SELECT id, login, email, rola FROM public.uzytkownicy WHERE id = ?";
+                try (PreparedStatement userStatement = connection.prepareStatement(query)) {
+                    userStatement.setInt(1, userId);
+                    ResultSet userResult = userStatement.executeQuery();
+
+                    if (userResult.next()) {
+                        int id = userResult.getInt("id");
+                        String userLogin = userResult.getString("login");
+                        String email = userResult.getString("email");
+                        int role = userResult.getInt("rola");
+                        var roleEnum = UserRole.values()[role];
+
+                        return new User(id, userLogin, email, roleEnum);
+                    }
+                }
+            } else {
+                System.out.println("Nie znaleziono użytkownika.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas logowania: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         return null;
     }
 
+
     @Override
     public void AddEvent(Event event) {
+        String eventInsertQuery = "INSERT INTO public.wydarzenia (datawydarzeniastart, datawydarzeniakoniec, miejsce, organizator, uzytkownicyid) VALUES (?, ?, ?, ?, ?) RETURNING id";
+        String ticketPoolInsertQuery = "INSERT INTO public.pule_biletow (iloscbiletow, cenabiletu, datarozpoczeciasprzedazy, datazakonczeniesprzedazy, rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, numerpuli, wydarzeniaid) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
+        Connection connection = getConnection();
+        try {
+            connection.setAutoCommit(false);
+
+            int eventId;
+            try (PreparedStatement eventStatement = connection.prepareStatement(eventInsertQuery)) {
+                eventStatement.setDate(1, java.sql.Date.valueOf(event.sellStartDate));
+                eventStatement.setDate(2, java.sql.Date.valueOf(event.saleEndDate));
+                eventStatement.setString(3, event.location);
+                eventStatement.setString(4, event.organizer);
+                eventStatement.setInt(5, event.userId);
+
+                ResultSet eventResultSet = eventStatement.executeQuery();
+                if (eventResultSet.next()) {
+                    eventId = eventResultSet.getInt(1);
+                } else {
+                    throw new SQLException("Nie udało się utworzyć wydarzenia.");
+                }
+            }
+
+            // Wstawienie powiązanych pul biletów
+            if (event.ticketPools != null) {
+                try (PreparedStatement ticketPoolStatement = connection.prepareStatement(ticketPoolInsertQuery)) {
+                    for (TicketPool pool : event.ticketPools) {
+                        ticketPoolStatement.setInt(1, pool.numberOfTickets);
+                        ticketPoolStatement.setFloat(2, pool.price);
+                        ticketPoolStatement.setDate(3, java.sql.Date.valueOf(pool.sellStartDate));
+                        ticketPoolStatement.setDate(4, java.sql.Date.valueOf(pool.sellEndDate));
+                        ticketPoolStatement.setBoolean(5, pool.shouldStartWhenPreviousPoolEnd);
+                        ticketPoolStatement.setInt(6, pool.poolNumber);
+                        ticketPoolStatement.setInt(7, eventId);
+
+                        ticketPoolStatement.executeUpdate();
+                    }
+                }
+            }
+
+            connection.commit(); // Zatwierdzenie transakcji
+            System.out.println("Wydarzenie i pule biletów zostały pomyślnie dodane.");
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas dodawania wydarzenia: " + e.getMessage());
+            e.printStackTrace();
+            try {
+                connection.rollback(); // Wycofanie transakcji w razie błędu
+            } catch (SQLException rollbackException) {
+                System.err.println("Błąd podczas wycofywania transakcji: " + rollbackException.getMessage());
+            }
+        }
     }
+
 
     @Override
     public Event[] GetHistoricalEventsById(Integer userId) {
@@ -94,8 +197,8 @@ public class Facade implements IModel {
                     ticketPool.numberOfTickets = resultSet.getInt("iloscbiletow");
                     ticketPool.price = resultSet.getFloat("cenabiletu");
                     ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                    ticketPool.saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
-                    ticketPool.shouldStartWhenPrviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
+                    ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                    ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
                     ticketPool.poolNumber = resultSet.getInt("numerpuli");
 
                     event.addTicketPool(ticketPool);
@@ -155,8 +258,8 @@ public class Facade implements IModel {
                     ticketPool.numberOfTickets = resultSet.getInt("iloscbiletow");
                     ticketPool.price = resultSet.getFloat("cenabiletu");
                     ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                    ticketPool.saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
-                    ticketPool.shouldStartWhenPrviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
+                    ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                    ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
                     ticketPool.poolNumber = resultSet.getInt("numerpuli");
 
                     event.addTicketPool(ticketPool);
@@ -172,7 +275,6 @@ public class Facade implements IModel {
     }
 
 
-
     @Override
     public void UpdateEvent(Event Event) {
 
@@ -184,8 +286,21 @@ public class Facade implements IModel {
     }
 
     @Override
-    public void AddTicket(Ticket ticket) {
+    public void AddTicket(int ticketPoolId, int userId) {
+        String procedureCall = "CALL public.stworz_bilet(?, ?)";
 
+        try (Connection connection = getConnection();
+             CallableStatement callableStatement = connection.prepareCall(procedureCall)) {
+
+            callableStatement.setInt(1, ticketPoolId);
+            callableStatement.setInt(2, userId);
+
+            callableStatement.execute();
+            System.out.println("Bilet został pomyślnie dodany.");
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas dodawania biletu: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override

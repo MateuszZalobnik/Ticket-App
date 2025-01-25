@@ -1,40 +1,38 @@
-package org.View.organizer;
+package org.View.client;
 
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import org.Model.Organizer;
+import org.Model.Client;
+import org.Model.User;
 import org.View.organizer.components.CreateNewEvent;
 import org.View.organizer.components.MyEventsList;
 import org.View.shared.components.NavigationBar;
 
 import java.util.List;
 
-public class OrganizerView {
-
+public class ClientView {
     private final BorderPane mainLayout;
     private final StackPane contentPane;
-    private final Organizer organizer;
+    private final Client client;
     private final Stage primaryStage;
 
-    public OrganizerView(Organizer organizer, Stage primaryStage) {
+    public ClientView(Client client, Stage primaryStage) {
+        this.client = client;
         this.primaryStage = primaryStage;
-        this.organizer = organizer;
         mainLayout = new BorderPane();
         contentPane = new StackPane();
 
         var eventsList = new StackPane(new Text("This is View 1"));
         contentPane.getChildren().add(eventsList);
 
-        var navigationList = List.of("Moje wydarzenia", "Historia wydarzeń", "Dodaj wydarzenie");
+        var navigationList = List.of("Moje wydarzenia");
         var navigationBar = new NavigationBar(navigationList, (viewName) -> {
             switch (viewName) {
-                case "Moje wydarzenia" -> switchView(new MyEventsList(organizer.id, false)); // TODO NULL is not a valid id
-                case "Historia wydarzeń" -> switchView(new MyEventsList(organizer.id, true));
-                case "Dodaj wydarzenie" -> switchView(new CreateNewEvent(organizer));
+                case "Moje wydarzenia" -> switchView(new StackPane(new Text("This is client 1")));
             }
-        }, organizer.login, primaryStage);
+        }, client.login, primaryStage);
 
         mainLayout.setTop(navigationBar.getNavigationBar());
         mainLayout.setCenter(contentPane);

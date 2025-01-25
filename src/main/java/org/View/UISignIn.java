@@ -2,6 +2,7 @@ package org.View;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -57,12 +58,11 @@ public class UISignIn extends BaseUILogin {
         styleButton(signInButton);
         gridPane.add(signInButton, 0, 5);
 
-        // Assuming you have a Label to display warnings
         Label warningLabel = new Label();
         warningLabel.setTextFill(Color.RED); // Set warning text color
         warningLabel.setVisible(false); // Initially, make it invisible
 
-// Your button action
+        // button action
         signInButton.setOnAction(event -> {
             String email = emailField.getText().trim();
             String login = loginField.getText().trim();
@@ -74,22 +74,22 @@ public class UISignIn extends BaseUILogin {
             if (!email.isEmpty() && !login.isEmpty() && !password.isEmpty() && role != null) {
                 int role_int = -1;
 
-                // Determine the role integer based on the selected role
                 if (role.equals("Klient")) {
                     role_int = 0;
                 } else if (role.equals("Organizator")) {
                     role_int = 1;
                 }
 
-                // Call PresenterFacade to create the account
                 PresenterFacade facade = new PresenterFacade();
                 facade.CreateAccount(login, email, password, role_int);
 
-                // Clear warning message and print debug info
+                GridPane loginView = UILogin.getView(stage);
+                Scene scene = new Scene(loginView, 400, 300);
+                stage.setScene(scene);
+
                 warningLabel.setVisible(false);
                 System.out.println(login + " " + email + " " + password + " " + role_int);
             } else {
-                // Show warning if any required field is missing
                 warningLabel.setText("Proszę uzupełnić wszystkie wymagane pola!"); // cos nie działa
                 warningLabel.setVisible(true);
             }

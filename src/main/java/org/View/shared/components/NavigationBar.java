@@ -4,6 +4,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -12,8 +13,10 @@ public class NavigationBar {
 
     private final HBox navigationBar;
     private Button activeButton;
+    private final Stage primaryStage;
 
-    public NavigationBar(List<String> pages, Consumer<String> onNavigate, String username) {
+    public NavigationBar(List<String> pages, Consumer<String> onNavigate, String username, Stage primaryStage) {
+        this.primaryStage = primaryStage;
         navigationBar = new HBox(10);
         navigationBar.setStyle("-fx-background-color: #EBE6DD; -fx-padding: 10;");
         navigationBar.setPrefHeight(50);
@@ -33,7 +36,7 @@ public class NavigationBar {
         var logoutButton = new Button("Wyloguj się");
         logoutButton.setStyle("-fx-background-color: transparent; -fx-text-fill: black; -fx-cursor: hand;");
         logoutButton.setOnAction(e -> {
-            // TODO add logout logic
+            primaryStage.close();
         });
 
         // Add all components to the navigation bar

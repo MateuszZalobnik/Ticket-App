@@ -7,6 +7,7 @@ public class Event {
 	public String saleEndDate;
 	public String location;
 	public String organizer;
+	public int userId;
 	public TicketPool[] ticketPools;
 
 	public void addTicketPool(TicketPool ticketPool) {
