@@ -1,9 +1,10 @@
 package org.Presenter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CreateEventRequest {
-	public CreateEventRequest (String startDate, String endDate, String place, String organizer, int userId, TicketPoolRequest[] ticketPools) {
+	public CreateEventRequest (String startDate, String endDate, String place, String organizer, int userId, ArrayList<TicketPoolRequest> ticketPools) {
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.place = place;
@@ -17,7 +18,7 @@ public class CreateEventRequest {
 	public String place;
 	public String organizer;
 	public int userId;
-	public TicketPoolRequest[] ticketPools;
+	public ArrayList<TicketPoolRequest> ticketPools;
 
 	public List<String> BlackList;
 
