@@ -7,6 +7,7 @@ import javafx.stage.Stage;
 import org.Model.Client;
 import org.Model.User;
 import org.View.client.components.EventList;
+import org.View.client.components.MyResells;
 import org.View.client.components.MyTickets;
 import org.View.shared.components.NavigationBar;
 
@@ -33,7 +34,7 @@ public class ClientView {
                 case "Moje wydarzenia" -> switchView(new MyTickets(client.id, false));
                 case "Historia wydarzeń" -> switchView(new MyTickets(client.id, true));
                 case "Kup bilet" -> switchView(new EventList(client.id));
-                case "Rynek wtórny" -> switchView(new StackPane(new Text("This is client 1")));
+                case "Rynek wtórny" -> switchView(new MyResells());
             }
         }, client.login, primaryStage);
 

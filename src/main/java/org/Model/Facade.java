@@ -5,7 +5,7 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/testv2";
+    final String connectionString = "jdbc:postgresql://localhost:5432/bd_1";
     private Properties props;
 
 
@@ -309,7 +309,7 @@ public class Facade implements IModel {
                     String organizer = resultSet.getString("organizator");
                     float price = resultSet.getFloat("cenabiletu");
 
-                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price);
+                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price, false);
                     tickets.add(ticket);
                 }
             }
@@ -354,7 +354,7 @@ public class Facade implements IModel {
                     String organizer = resultSet.getString("organizator");
                     float price = resultSet.getFloat("cenabiletu");
 
-                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price);
+                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price, false);
                     tickets.add(ticket);
                 }
             }
@@ -395,7 +395,60 @@ public class Facade implements IModel {
     }
 
     @Override
-    public void AddTicketForResell(TicketToReSell ticket) {
+    public void AddTicketForResell(TicketToReSell ticketToReSell) {
+        String procedureCall = "INSERT INTO public.bilety_do_odsprzedania (biletyid, cena) VALUES (?, ?)";
 
+        try (Connection connection = getConnection();
+             CallableStatement callableStatement = connection.prepareCall(procedureCall)) {
+
+            // Set procedure parameters
+            UUID ticketUuid = UUID.fromString(ticketToReSell.ticketId); // Konwersja String na UUID
+            callableStatement.setObject(1, ticketUuid); // Użycie setObject do ustawienia UUID
+            callableStatement.setFloat(2, ticketToReSell.price);
+
+            // Execute the procedure
+            callableStatement.execute();
+            System.out.println("Bilet dodany do bazy z odsprzedaza.");
+        } catch (SQLException e) {
+            System.err.println("Error while adding ticket to the reselling market: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Ticket[] GetTicketForSell() {
+        String sql = "SELECT b.id AS ticket_id, b.pule_biletowid, " +
+                "p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
+                "e.miejsce, e.organizator, " +
+                "r.cena AS resell_price " +
+                "FROM public.bilety b " +
+                "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
+                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
+                "JOIN public.bilety_do_odsprzedania r ON b.id = r.biletyid " +
+                "WHERE e.datawydarzeniakoniec < now()";
+
+        List<Ticket> tickets = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                String ticketId = resultSet.getString("ticket_id");
+                int poolId = resultSet.getInt("pule_biletowid");
+                String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
+                String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                String location = resultSet.getString("miejsce");
+                String organizer = resultSet.getString("organizator");
+                float resellPrice = resultSet.getFloat("resell_price");
+                System.out.println(organizer);
+                Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, resellPrice, true);
+                tickets.add(ticket);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return tickets.toArray(new Ticket[0]);
     }
 }

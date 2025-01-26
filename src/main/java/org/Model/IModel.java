@@ -67,4 +67,6 @@ public interface IModel {
 	 */
 	void AddTicketForResell(TicketToReSell ticket);
 
+	Ticket[] GetTicketForSell();
+
 }
