@@ -5,14 +5,14 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/test2";
+    final String connectionString = "jdbc:postgresql://localhost:5432/testv2";
     private Properties props;
 
 
     public Facade() {
         props = new Properties();
-        props.setProperty("user", "app_user");
-        props.setProperty("password", "app");
+        props.setProperty("user", "postgres");
+        props.setProperty("password", "admin");
 
     }
 

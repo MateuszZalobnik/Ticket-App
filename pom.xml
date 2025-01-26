@@ -34,7 +34,7 @@
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>${javafx.maven.plugin.version}</version>
+<version>${javafx.maven.plugin.version}</version>
                 <configuration>
                     <mainClass>org.View.App</mainClass>
                 </configuration>

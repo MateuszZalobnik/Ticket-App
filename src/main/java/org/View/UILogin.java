@@ -42,6 +42,12 @@ public class UILogin extends BaseUILogin {
         styleTextField(passwordField);
         gridPane.add(passwordField, 0, 2);
 
+        // Error label
+        Label errorLabel = new Label();
+        errorLabel.setTextFill(Color.RED);
+        errorLabel.setVisible(false); // Initially hidden
+        gridPane.add(errorLabel, 0, 5);
+
         // Login button
         Button loginButton = new Button("Zaloguj się");
         styleButton(loginButton);
@@ -58,18 +64,28 @@ public class UILogin extends BaseUILogin {
             stage.setScene(scene);
         });
 
+        // Log in button
         loginButton.setOnMouseClicked(event -> {
             String login = loginField.getText().trim();
             String password = passwordField.getText().trim();
 
+            if (login.isEmpty() || password.isEmpty()) {
+                errorLabel.setText("Login i hasło nie mogą być puste.");
+                errorLabel.setVisible(true);
+                return;
+            }
+
+
             PresenterFacade presenterFacade = new PresenterFacade();
             var user = presenterFacade.LogIn(login, password);
 
-            if (user.role == UserRole.Client) {
+            if (user == null) {
+                errorLabel.setText("Niepoprawny login lub hasło. Spróbuj ponownie.");
+                errorLabel.setVisible(true);
+            } else if (user.role == UserRole.Client) {
                 var clientView = new ClientView((Client) user, stage);
                 stage.setScene(new Scene(clientView.getView(), 800, 600));
-            }
-            else if (user.role == UserRole.Organizer) {
+            } else if (user.role == UserRole.Organizer) {
                 var organizerView = new OrganizerView((Organizer) user, stage);
                 stage.setScene(new Scene(organizerView.getView(), 800, 600));
             }
