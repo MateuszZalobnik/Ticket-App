@@ -125,7 +125,7 @@ public class Facade implements IModel {
             if (event.ticketPools != null) {
                 try (PreparedStatement ticketPoolStatement = connection.prepareStatement(ticketPoolInsertQuery)) {
                     for (TicketPool pool : event.ticketPools) {
-                        ticketPoolStatement.setInt(1, pool.numberOfTickets);
+                        ticketPoolStatement.setInt(1, pool.initialNumberOfTickets);
                         ticketPoolStatement.setFloat(2, pool.price);
                         ticketPoolStatement.setDate(3, java.sql.Date.valueOf(pool.sellStartDate));
                         ticketPoolStatement.setDate(4, java.sql.Date.valueOf(pool.sellEndDate));
@@ -194,7 +194,7 @@ public class Facade implements IModel {
 
                     TicketPool ticketPool = new TicketPool();
                     ticketPool.id = resultSet.getInt("id");
-                    ticketPool.numberOfTickets = resultSet.getInt("iloscbiletow");
+                    ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                     ticketPool.price = resultSet.getFloat("cenabiletu");
                     ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
                     ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
@@ -254,8 +254,8 @@ public class Facade implements IModel {
                     }
 
                     TicketPool ticketPool = new TicketPool();
-                    ticketPool.id = resultSet.getInt("id");
-                    ticketPool.numberOfTickets = resultSet.getInt("iloscbiletow");
+                    ticketPool.id = resultSet.getInt("pool_id");
+                    ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                     ticketPool.price = resultSet.getFloat("cenabiletu");
                     ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
                     ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
@@ -271,7 +271,98 @@ public class Facade implements IModel {
             e.printStackTrace();
         }
 
+        System.out.println("Znaleziono " + events.size() + " wydarzeń.");
         return events.toArray(new Event[0]);
+    }
+
+    @Override
+    public Ticket[] GetTicketsById(Integer userId) {
+        String sql = "SELECT b.id, b.pule_biletowid, b.uzytkownicyid, " +
+                "p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
+                "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
+                "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator " +
+                "FROM public.bilety b " +
+                "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
+                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
+                "WHERE e.datawydarzeniakoniec > now()";
+
+        if (userId != null) {
+            sql += " AND b.uzytkownicyid = ?";
+        }
+
+        List<Ticket> tickets = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            if (userId != null) {
+                statement.setInt(1, userId);
+            }
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String ticketId = resultSet.getString("id");
+                    int poolId = resultSet.getInt("pule_biletowid");
+                    String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
+                    String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                    String location = resultSet.getString("miejsce");
+                    String organizer = resultSet.getString("organizator");
+                    float price = resultSet.getFloat("cenabiletu");
+
+                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price);
+                    tickets.add(ticket);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return tickets.toArray(new Ticket[0]);
+    }
+
+    @Override
+    public Ticket[] GetHistoricalTicketsById(Integer userId) {
+        String sql = "SELECT b.id, b.pule_biletowid, b.uzytkownicyid, " +
+                "p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
+                "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
+                "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator " +
+                "FROM public.bilety b " +
+                "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
+                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
+                "WHERE e.datawydarzeniakoniec < now()";
+
+        if (userId != null) {
+            sql += " AND b.uzytkownicyid = ?";
+        }
+
+        List<Ticket> tickets = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            if (userId != null) {
+                statement.setInt(1, userId);
+            }
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String ticketId = resultSet.getString("id");
+                    int poolId = resultSet.getInt("pule_biletowid");
+                    String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
+                    String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                    String location = resultSet.getString("miejsce");
+                    String organizer = resultSet.getString("organizator");
+                    float price = resultSet.getFloat("cenabiletu");
+
+                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price);
+                    tickets.add(ticket);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return tickets.toArray(new Ticket[0]);
     }
 
 
