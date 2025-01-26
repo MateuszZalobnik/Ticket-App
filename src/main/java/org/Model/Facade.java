@@ -5,14 +5,14 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/test2";
+    final String connectionString = "jdbc:postgresql://localhost:5432/testv2";
     private Properties props;
 
 
     public Facade() {
         props = new Properties();
-        props.setProperty("user", "app_user");
-        props.setProperty("password", "app");
+        props.setProperty("user", "postgres");
+        props.setProperty("password", "admin");
 
     }
 
@@ -100,6 +100,19 @@ public class Facade implements IModel {
     public void AddEvent(Event event) {
         String eventInsertQuery = "INSERT INTO public.wydarzenia (datawydarzeniastart, datawydarzeniakoniec, miejsce, organizator, uzytkownicyid) VALUES (?, ?, ?, ?, ?) RETURNING id";
         String ticketPoolInsertQuery = "INSERT INTO public.pule_biletow (iloscbiletow, cenabiletu, datarozpoczeciasprzedazy, datazakonczeniesprzedazy, rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, numerpuli, wydarzeniaid) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        if (event.ticketPools != null && event.ticketPools.length > 0) {
+            for (TicketPool ticketPool : event.ticketPools) {
+                System.out.println("Ticket Type: " + ticketPool.price);
+                System.out.println("Available Tickets: " + ticketPool.sellStartDate);
+                System.out.println("Price: " + ticketPool.sellEndDate);
+                System.out.println("---------");
+            }
+        } else {
+            System.out.println("No ticket pools available.");
+        }
+
+        System.out.println("Organizer: " +event.organizer+" userID:" +event.userId);
 
         Connection connection = getConnection();
         try {
