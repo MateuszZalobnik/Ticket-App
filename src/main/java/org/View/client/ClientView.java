@@ -6,8 +6,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.Model.Client;
 import org.Model.User;
-import org.View.organizer.components.CreateNewEvent;
-import org.View.organizer.components.MyEventsList;
+import org.View.client.components.EventList;
+import org.View.client.components.MyTickets;
 import org.View.shared.components.NavigationBar;
 
 import java.util.List;
@@ -27,10 +27,13 @@ public class ClientView {
         var eventsList = new StackPane(new Text("This is View 1"));
         contentPane.getChildren().add(eventsList);
 
-        var navigationList = List.of("Moje wydarzenia");
+        var navigationList = List.of("Moje wydarzenia", "Historia wydarzeń", "Kup bilet", "Rynek wtórny");
         var navigationBar = new NavigationBar(navigationList, (viewName) -> {
             switch (viewName) {
-                case "Moje wydarzenia" -> switchView(new StackPane(new Text("This is client 1")));
+                case "Moje wydarzenia" -> switchView(new MyTickets(client.id, false));
+                case "Historia wydarzeń" -> switchView(new MyTickets(client.id, true));
+                case "Kup bilet" -> switchView(new EventList(client.id));
+                case "Rynek wtórny" -> switchView(new StackPane(new Text("This is client 1")));
             }
         }, client.login, primaryStage);
 

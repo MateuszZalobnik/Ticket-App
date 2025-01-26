@@ -65,6 +65,7 @@ public class PresenterFacade implements IPresenter {
             var ticketPool = new TicketPool(
                     -1,
                     pool.amountOfTickets,
+                    0,
                     pool.price,
                     pool.sellStartDate,
                     pool.sellEndDate,
@@ -94,7 +95,14 @@ public class PresenterFacade implements IPresenter {
 
     @Override
     public Ticket[] GetTickets(int userId) {
-        return new Ticket[0];
+        IModel model = new Facade();
+        return model.GetTicketsById(userId);
+    }
+
+    @Override
+    public Ticket[] GetHistoricalTickets(int userId) {
+        IModel model = new Facade();
+        return model.GetHistoricalTicketsById(userId);
     }
 
     @Override
@@ -103,8 +111,9 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
-    public void BuyTicket(int ticketId) {
-
+    public void BuyTicket(int ticketPoolId, int userId) {
+        IModel model = new Facade();
+        model.AddTicket(ticketPoolId, userId);
     }
 
     @Override

@@ -63,13 +63,19 @@ public interface IPresenter {
 	 */
 	Ticket[] GetTickets(int userId);
 
+	/**
+	 *
+	 * @param userId
+	 */
+	Ticket[] GetHistoricalTickets(int userId);
+
 	TicketToReSell[] GetTicketsForResell();
 
 	/**
 	 * 
-	 * @param ticketId
+	 * @param ticketPoolId
 	 */
-	void BuyTicket(int ticketId);
+	void BuyTicket(int ticketPoolId, int userId);
 
 	/**
 	 * 

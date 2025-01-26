@@ -31,6 +31,18 @@ public interface IModel {
 	Event[] GetEventsById(Integer userId);
 
 	/**
+	 *
+	 * @param userId
+	 */
+	Ticket[] GetTicketsById(Integer userId);
+
+	/**
+	 *
+	 * @param userId
+	 */
+	Ticket[] GetHistoricalTicketsById(Integer userId);
+
+	/**
 	 * 
 	 * @param Event
 	 */
