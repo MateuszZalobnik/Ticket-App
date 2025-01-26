@@ -1,20 +1,30 @@
 package org.View.organizer.components;
 
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import org.Model.Facade;
 import org.Model.Organizer;
+import org.Model.User;
 import org.Presenter.CreateEventRequest;
+import org.Presenter.IPresenter;
 import org.Presenter.PresenterFacade;
 import org.Presenter.TicketPoolRequest;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CreateNewEvent extends StackPane {
 
     private final Organizer organizer;
+    private ArrayList<User> blackList;
 
     public CreateNewEvent(Organizer organizer) {
         this.organizer = organizer;
@@ -91,49 +101,11 @@ public class CreateNewEvent extends StackPane {
         ticketPoolForm.add(poolEndDatePicker, 1, 4);
 
         Button addPoolButton = new Button("+ Dodaj pulę");
-
-        // Sekcja czarnej listy (zakomentowana na razie)
-        // Label blacklistLabel = new Label("Czarna lista");
-        // TextField blacklistSearchField = new TextField();
-        // blacklistSearchField.setPromptText("Szukaj...");
-        // ListView<String> blacklistView = new ListView<>();
-        // blacklistView.getItems().addAll("Login1", "Login2");
-
-        // blacklistView.setCellFactory(lv -> new ListCell<>() {
-        //     private final HBox cellContainer = new HBox(10);
-        //     private final Label loginLabel = new Label();
-        //     private final Button deleteButton = new Button("Usuń");
-
-        //     {
-        //         cellContainer.setAlignment(Pos.CENTER_LEFT);
-        //         deleteButton.setOnAction(event -> {
-        //             String item = getItem();
-        //             if (item != null) {
-        //                 getListView().getItems().remove(item);
-        //             }
-        //         });
-        //         cellContainer.getChildren().addAll(loginLabel, deleteButton);
-        //     }
-
-        //     @Override
-        //     protected void updateItem(String item, boolean empty) {
-        //         super.updateItem(item, empty);
-        //         if (empty || item == null) {
-        //             setText(null);
-        //             setGraphic(null);
-        //         } else {
-        //             loginLabel.setText(item);
-        //             setGraphic(cellContainer);
-        //         }
-        //     }
-        // });
-
-        Button saveButton = new Button("Zapisz");
         ArrayList<TicketPoolRequest> ticketPools = new ArrayList<>();
 
         VBox ticketPoolsDisplay = new VBox(10);
         ticketPoolsDisplay.setAlignment(Pos.TOP_LEFT);
-        // Obsługa zdarzenia kliknięcia przycisku "Dodaj pulę"
+
         addPoolButton.setOnAction(event -> {
             if (validatePoolData(poolNumberField, quantityField, priceField, poolStartDatePicker, poolEndDatePicker)) {
                 int poolNumber = Integer.parseInt(poolNumberField.getText());
@@ -143,13 +115,9 @@ public class CreateNewEvent extends StackPane {
                 String poolEndDate = poolEndDatePicker.getValue() != null ? poolEndDatePicker.getValue().toString() : null;
                 boolean startAfter = startAfterPrevious.isSelected();
 
-                // Zapisz dane puli biletów
                 var ticketPool = new TicketPoolRequest(quantity, price, poolStartDate, poolEndDate, startAfter, poolNumber);
-                ticketPools.add(ticketPool);//dodanie do listy
-                System.out.println("Dodano pulę: " + ticketPool);
-                // Możesz dodać logikę zapisu do bazy danych tutaj
+                ticketPools.add(ticketPool);
 
-                // Tworzymy Label do wyświetlania szczegółów puli
                 Label ticketPoolDetails = new Label("Numer: " + poolNumber + ", Ilość: " + quantity + ", Cena: " + price
                         + ", Data rozpoczęcia: " + poolStartDate + ", Data zakończenia: " + poolEndDate
                         + ", Rozpocznij po poprzedniej: " + (startAfter ? "Tak" : "Nie"));
@@ -157,8 +125,62 @@ public class CreateNewEvent extends StackPane {
             }
         });
 
-        // Obsługa zdarzenia kliknięcia przycisku "Zapisz"
+        // Sekcja czarnej listy
 
+        Label blacklistSearchLabel = new Label("Wyszukaj użytkownika:");
+        TextField blacklistSearchField = new TextField();
+        blacklistSearchField.setPromptText("Wpisz login użytkownika...");
+
+        ListView<String> searchResultsView = new ListView<>();
+        ListView<String> blacklistView = new ListView<>();
+
+        blacklistSearchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            IPresenter presenter = new PresenterFacade();
+            List<User> results = presenter.SearchUsersInDataBase(newValue);
+            blackList = (ArrayList<User>) results;
+            ArrayList<String> logins = new ArrayList<>();
+            results.forEach(user -> logins.add(user.getLogin()));
+            searchResultsView.getItems().setAll(logins);
+        });
+
+
+        searchResultsView.setOnMouseClicked(event -> {
+            String selectedUser = searchResultsView.getSelectionModel().getSelectedItem();
+            if (selectedUser != null && !blacklistView.getItems().contains(selectedUser)) {
+                blacklistView.getItems().add(selectedUser);
+            }
+        });
+
+        blacklistView.setCellFactory(lv -> new ListCell<>() {
+            private final HBox cellContainer = new HBox(10);
+            private final Label loginLabel = new Label();
+            private final Button deleteButton = new Button("Usuń");
+
+            {
+                cellContainer.setAlignment(Pos.CENTER_LEFT);
+                deleteButton.setOnAction(event -> {
+                    String item = getItem();
+                    if (item != null) {
+                        getListView().getItems().remove(item);
+                    }
+                });
+                cellContainer.getChildren().addAll(loginLabel, deleteButton);
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    loginLabel.setText(item);
+                    setGraphic(cellContainer);
+                }
+            }
+        });
+
+        Button saveButton = new Button("Zapisz");
         saveButton.setOnAction(event -> {
             if (validateFormData(nameField, locationField, startDatePicker, endDatePicker)) {
                 String eventName = nameField.getText();
@@ -167,21 +189,33 @@ public class CreateNewEvent extends StackPane {
                 String endDate = endDatePicker.getValue() != null ? endDatePicker.getValue().toString() : null;
 
                 var facade = new PresenterFacade();
-                facade.CreateEvent(new CreateEventRequest(startDate, endDate, eventLocation, eventName, organizer.id, ticketPools));
+                facade.CreateEvent(new CreateEventRequest(
+                        startDate,
+                        endDate,
+                        eventLocation,
+                        eventName,
+                        organizer.id,
+                        ticketPools,
+                        new ArrayList<>(blackList.stream()
+                                .map(U -> U.id) // mapujemy na Integer
+                                .collect(Collectors.toList())) // zbieramy do List<Integer>
+                ));
 
+                getChildren().clear();
+                getChildren().add(new CreateNewEvent(organizer));
             }
         });
 
-        // Dodanie sekcji do głównego kontenera
-        mainContainer.getChildren().addAll(eventForm, ticketPoolsLabel, ticketPoolForm, addPoolButton,ticketPoolsDisplay, saveButton);
+        VBox blacklistSection = new VBox(10, blacklistSearchLabel, blacklistSearchField, searchResultsView, new Label("Czarna lista:"), blacklistView);
+        blacklistSection.setAlignment(Pos.TOP_LEFT);
 
-        // Dodanie paska przewijania
+        mainContainer.getChildren().addAll(eventForm, ticketPoolsLabel, ticketPoolForm, addPoolButton, ticketPoolsDisplay, blacklistSection, saveButton);
+
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setContent(mainContainer);
         scrollPane.setFitToWidth(true);
-        scrollPane.setPadding(new Insets(10));
+        scrollPane.setPadding(new Insets(5));
 
-        // Dodanie głównego kontenera do StackPane
         root.getChildren().add(scrollPane);
         getChildren().add(root);
     }
@@ -195,6 +229,10 @@ public class CreateNewEvent extends StackPane {
             showAlert("Data rozpoczęcia nie może być późniejsza niż data zakończenia.");
             return false;
         }
+        if (startDatePicker.getValue().isBefore(java.time.LocalDate.now()) || endDatePicker.getValue().isBefore(java.time.LocalDate.now())) {
+            showAlert("Data rozpoczęcia i zakończenia muszą być równe lub późniejsze niż dzisiejsza data.");
+            return false;
+        }
         return true;
     }
 
@@ -205,7 +243,6 @@ public class CreateNewEvent extends StackPane {
                 return false;
             }
 
-            // Sprawdzenie, czy numer, ilość i cena są liczbami dodatnimi
             int poolNumber = Integer.parseInt(poolNumberField.getText());
             int quantity = Integer.parseInt(quantityField.getText());
             float price = Float.parseFloat(priceField.getText());

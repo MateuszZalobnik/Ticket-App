@@ -405,7 +405,6 @@ public class Facade implements IModel {
     }
 
 
-
     @Override
     public void UpdateEvent(Event Event) {
 
@@ -438,4 +437,41 @@ public class Facade implements IModel {
     public void AddTicketForResell(TicketToReSell ticket) {
 
     }
+
+    @Override
+    public ArrayList<User> SearchUsersInDataBase(String login) {
+        ArrayList<User> users = new ArrayList<>();
+        String query = "SELECT id, login, email, haslo FROM uzytkownicy WHERE rola = 0 AND login = ?";
+
+        try (Connection connection = getConnection();
+             CallableStatement stmt = connection.prepareCall(query)) {
+            // Ustawiamy parametr zapytania (login)
+            stmt.setString(1, login);
+
+            // Wykonujemy zapytanie
+            ResultSet rs = stmt.executeQuery();
+
+            // Przetwarzamy wyniki
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String userLogin = rs.getString("login");
+                String email = rs.getString("email");
+
+                // Tworzymy obiekt użytkownika i dodajemy go do listy
+                User user = new User(id, userLogin, email, UserRole.Client);
+                users.add(user);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Obsługuje wyjątek, np. logowanie błędów
+        }
+
+        return users;
+    }
+
+    @Override
+    public void AddBlockedUsers(ArrayList<User> blockedUsers) {
+
+    }
+
 }
