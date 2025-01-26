@@ -101,19 +101,6 @@ public class Facade implements IModel {
         String eventInsertQuery = "INSERT INTO public.wydarzenia (datawydarzeniastart, datawydarzeniakoniec, miejsce, organizator, uzytkownicyid) VALUES (?, ?, ?, ?, ?) RETURNING id";
         String ticketPoolInsertQuery = "INSERT INTO public.pule_biletow (iloscbiletow, cenabiletu, datarozpoczeciasprzedazy, datazakonczeniesprzedazy, rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, numerpuli, wydarzeniaid) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        if (event.ticketPools != null && event.ticketPools.length > 0) {
-            for (TicketPool ticketPool : event.ticketPools) {
-                System.out.println("Ticket Type: " + ticketPool.price);
-                System.out.println("Available Tickets: " + ticketPool.sellStartDate);
-                System.out.println("Price: " + ticketPool.sellEndDate);
-                System.out.println("---------");
-            }
-        } else {
-            System.out.println("No ticket pools available.");
-        }
-
-        System.out.println("Organizer: " +event.organizer+" userID:" +event.userId);
-
         Connection connection = getConnection();
         try {
             connection.setAutoCommit(false);

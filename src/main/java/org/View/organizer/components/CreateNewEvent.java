@@ -33,7 +33,7 @@ public class CreateNewEvent extends StackPane {
         eventForm.setVgap(10);
 
         // Pola tekstowe i etykiety
-        Label nameLabel = new Label("Nazwa:");
+        Label nameLabel = new Label("Organizator:");
         TextField nameField = new TextField();
 
         Label locationLabel = new Label("Miejsce:");
