@@ -58,9 +58,11 @@ public class UISignIn extends BaseUILogin {
         styleButton(signInButton);
         gridPane.add(signInButton, 0, 5);
 
+        // Warning Label
         Label warningLabel = new Label();
-        warningLabel.setTextFill(Color.RED); // Set warning text color
-        warningLabel.setVisible(false); // Initially, make it invisible
+        warningLabel.setTextFill(Color.RED);
+        warningLabel.setVisible(false);
+        gridPane.add(warningLabel, 0, 6);
 
         // button action
         signInButton.setOnAction(event -> {
@@ -70,28 +72,24 @@ public class UISignIn extends BaseUILogin {
             String role = roleComboBox.getValue();
 
 
-            // Check if all necessary fields are provided
-            if (!email.isEmpty() && !login.isEmpty() && !password.isEmpty() && role != null) {
-                int role_int = -1;
-
-                if (role.equals("Klient")) {
-                    role_int = 0;
-                } else if (role.equals("Organizator")) {
-                    role_int = 1;
-                }
+            // Validate inputs
+            if (email.isEmpty() || login.isEmpty() || password.isEmpty() || role == null) {
+                warningLabel.setText("Proszę uzupełnić wszystkie wymagane pola!");
+                warningLabel.setVisible(true);
+            } else if (!isValidEmail(email)) {
+                warningLabel.setText("Nieprawidłowy format e-mail.");
+                warningLabel.setVisible(true);
+            } else {
+                int roleInt = role.equals("Klient") ? 0 : 1;
 
                 PresenterFacade facade = new PresenterFacade();
-                facade.CreateAccount(login, email, password, role_int);
+                facade.CreateAccount(login, email, password, roleInt);
 
                 GridPane loginView = UILogin.getView(stage);
                 Scene scene = new Scene(loginView, 400, 300);
                 stage.setScene(scene);
 
                 warningLabel.setVisible(false);
-                System.out.println(login + " " + email + " " + password + " " + role_int);
-            } else {
-                warningLabel.setText("Proszę uzupełnić wszystkie wymagane pola!"); // cos nie działa
-                warningLabel.setVisible(true);
             }
         });
         return gridPane;
@@ -109,5 +107,10 @@ public class UISignIn extends BaseUILogin {
         button.setPrefWidth(150);
     }
 
+    // Email validation method
+    private static boolean isValidEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        return email.matches(emailRegex);
+    }
 
 }
