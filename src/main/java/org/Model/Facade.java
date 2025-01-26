@@ -271,14 +271,15 @@ public class Facade implements IModel {
             e.printStackTrace();
         }
 
-        System.out.println("Znaleziono " + events.size() + " wydarzeń.");
         return events.toArray(new Event[0]);
     }
 
     @Override
     public Ticket[] GetTicketsById(Integer userId) {
         String sql = "SELECT b.id, b.pule_biletowid, b.uzytkownicyid, " +
-                "p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
+                "p.id AS pool_id, p.iloscbiletow, " +
+                "(SELECT COUNT(*) FROM public.bilety WHERE pule_biletowid = p.id) AS liczba_sprzedanych_biletow, " +
+                "p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
                 "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator " +
                 "FROM public.bilety b " +
@@ -301,15 +302,33 @@ public class Facade implements IModel {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    String ticketId = resultSet.getString("id");
-                    int poolId = resultSet.getInt("pule_biletowid");
+                    int poolId = resultSet.getInt("pool_id");
+                    int initialNumberOfTickets = resultSet.getInt("iloscbiletow");
+                    int numberOfSoldTickets = resultSet.getInt("liczba_sprzedanych_biletow");
+                    float price = resultSet.getFloat("cenabiletu");
                     String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
                     String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                    boolean shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
+                    int poolNumber = resultSet.getInt("numerpuli");
+
+                    TicketPool ticketPool = new TicketPool(
+                            poolId,
+                            initialNumberOfTickets,
+                            numberOfSoldTickets,
+                            price,
+                            sellStartDate,
+                            saleEndDate,
+                            shouldStartWhenPreviousPoolEnd,
+                            poolNumber
+                    );
+
+                    String ticketId = resultSet.getString("id");
                     String location = resultSet.getString("miejsce");
                     String organizer = resultSet.getString("organizator");
-                    float price = resultSet.getFloat("cenabiletu");
+                    String eventStartDate = resultSet.getString("datawydarzeniastart");
+                    String eventEndDate = resultSet.getString("datawydarzeniakoniec");
 
-                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price);
+                    Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price);
                     tickets.add(ticket);
                 }
             }
@@ -323,7 +342,9 @@ public class Facade implements IModel {
     @Override
     public Ticket[] GetHistoricalTicketsById(Integer userId) {
         String sql = "SELECT b.id, b.pule_biletowid, b.uzytkownicyid, " +
-                "p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
+                "p.id AS pool_id, p.iloscbiletow, " +
+                "(SELECT COUNT(*) FROM public.bilety WHERE pule_biletowid = p.id) AS liczba_sprzedanych_biletow, " +
+                "p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
                 "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator " +
                 "FROM public.bilety b " +
@@ -346,15 +367,33 @@ public class Facade implements IModel {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    String ticketId = resultSet.getString("id");
-                    int poolId = resultSet.getInt("pule_biletowid");
+                    int poolId = resultSet.getInt("pool_id");
+                    int initialNumberOfTickets = resultSet.getInt("iloscbiletow");
+                    int numberOfSoldTickets = resultSet.getInt("liczba_sprzedanych_biletow");
+                    float price = resultSet.getFloat("cenabiletu");
                     String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
                     String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                    boolean shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
+                    int poolNumber = resultSet.getInt("numerpuli");
+
+                    TicketPool ticketPool = new TicketPool(
+                            poolId,
+                            initialNumberOfTickets,
+                            numberOfSoldTickets,
+                            price,
+                            sellStartDate,
+                            saleEndDate,
+                            shouldStartWhenPreviousPoolEnd,
+                            poolNumber
+                    );
+
+                    String ticketId = resultSet.getString("id");
                     String location = resultSet.getString("miejsce");
                     String organizer = resultSet.getString("organizator");
-                    float price = resultSet.getFloat("cenabiletu");
+                    String eventStartDate = resultSet.getString("datawydarzeniastart");
+                    String eventEndDate = resultSet.getString("datawydarzeniakoniec");
 
-                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price);
+                    Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price);
                     tickets.add(ticket);
                 }
             }
@@ -364,6 +403,7 @@ public class Facade implements IModel {
 
         return tickets.toArray(new Ticket[0]);
     }
+
 
 
     @Override
