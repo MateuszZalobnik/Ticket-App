@@ -27,7 +27,7 @@ public class MyResells extends StackPane {
         // Fetch tickets for resale from the presenter
         IPresenter presenter = new PresenterFacade();
         tickets = presenter.GetTicketsForResell(); // Assumes the presenter has this method implemented
-
+        System.out.println(tickets.length);
         // Create a GridPane layout
         GridPane grid = new GridPane();
         grid.setHgap(10);

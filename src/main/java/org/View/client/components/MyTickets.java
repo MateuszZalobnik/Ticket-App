@@ -155,7 +155,6 @@ public class MyTickets extends StackPane {
                 presenter.ResellTicket(ticket.id, price);
 
                 popupStage.close();
-
                 Refresh();
 
             } catch (NumberFormatException ex) {
@@ -187,7 +186,33 @@ public class MyTickets extends StackPane {
     private void Refresh() {
         IPresenter presenter = new PresenterFacade();
         tickets = isHistorical ? presenter.GetHistoricalTickets(userId) : presenter.GetTickets(userId);
+
+        // Wyczyść siatkę i dodaj nowe bilety
         getChildren().clear();
-        getChildren().add(new MyTickets(userId, isHistorical));
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setAlignment(Pos.TOP_CENTER);
+        grid.setPadding(new javafx.geometry.Insets(10));
+
+        int row = 0;
+        int column = 0;
+
+        for (int i = 0; i < tickets.length; i++) {
+            StackPane eventPane = createTicketSquare(tickets[i]);
+            GridPane.setFillWidth(eventPane, true);
+            eventPane.setMaxWidth(Double.MAX_VALUE);
+
+            grid.add(eventPane, column, row);
+
+            column++;
+            if (column == 3) { // Resetowanie kolumny po 3 elementach
+                column = 0;
+                row++;
+            }
+        }
+
+        getChildren().add(grid);
     }
 }

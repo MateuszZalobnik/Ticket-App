@@ -280,11 +280,12 @@ public class Facade implements IModel {
         String sql = "SELECT b.id, b.pule_biletowid, b.uzytkownicyid, " +
                 "p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
-                "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator " +
+                "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, " +
+                "b.\"czyOdsprzedaz\" " + // Użycie cudzysłowów dla kolumny
                 "FROM public.bilety b " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
                 "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
-                "WHERE e.datawydarzeniakoniec > now()";
+                "WHERE e.datawydarzeniakoniec > now() AND b.\"czyOdsprzedaz\" = FALSE"; // Filtrowanie
 
         if (userId != null) {
             sql += " AND b.uzytkownicyid = ?";
@@ -308,8 +309,9 @@ public class Facade implements IModel {
                     String location = resultSet.getString("miejsce");
                     String organizer = resultSet.getString("organizator");
                     float price = resultSet.getFloat("cenabiletu");
+                    boolean isForResell = resultSet.getBoolean("czyOdsprzedaz");
 
-                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price, false);
+                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price, isForResell);
                     tickets.add(ticket);
                 }
             }
@@ -417,15 +419,15 @@ public class Facade implements IModel {
 
     @Override
     public Ticket[] GetTicketForSell() {
-        String sql = "SELECT b.id AS ticket_id, b.pule_biletowid, " +
+        String sql = "SELECT r.biletyid AS ticket_id, " +
+                "b.pule_biletowid, " +
                 "p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "e.miejsce, e.organizator, " +
                 "r.cena AS resell_price " +
-                "FROM public.bilety b " +
+                "FROM public.bilety_do_odsprzedania r " +
+                "JOIN public.bilety b ON r.biletyid = b.id " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
-                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
-                "JOIN public.bilety_do_odsprzedania r ON b.id = r.biletyid " +
-                "WHERE e.datawydarzeniakoniec < now()";
+                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id";
 
         List<Ticket> tickets = new ArrayList<>();
 
@@ -434,6 +436,8 @@ public class Facade implements IModel {
              ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
+                //System.out.println("wchodzi tu");
+                // Pobranie danych z ResultSet
                 String ticketId = resultSet.getString("ticket_id");
                 int poolId = resultSet.getInt("pule_biletowid");
                 String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
@@ -441,7 +445,8 @@ public class Facade implements IModel {
                 String location = resultSet.getString("miejsce");
                 String organizer = resultSet.getString("organizator");
                 float resellPrice = resultSet.getFloat("resell_price");
-                System.out.println(organizer);
+
+                // Tworzenie obiektu Ticket
                 Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, resellPrice, true);
                 tickets.add(ticket);
             }
@@ -449,6 +454,23 @@ public class Facade implements IModel {
             e.printStackTrace();
         }
 
+        // Zwracanie wyników jako tablica
         return tickets.toArray(new Ticket[0]);
+    }
+
+    @Override
+    public void UpdateTicket(String ticketId, boolean isForResell) {
+        String sql = "UPDATE public.bilety SET \"czyOdsprzedaz\" = ? WHERE id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setBoolean(1, isForResell);
+            statement.setString(2, ticketId);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

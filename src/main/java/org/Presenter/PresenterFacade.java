@@ -96,6 +96,8 @@ public class PresenterFacade implements IPresenter {
         ticketToReSell.ticketId = ticketId;
         ticketToReSell.price = price;
         model.AddTicketForResell(ticketToReSell);
+
+        model.UpdateTicket(ticketId, true);
     }
 
     @Override

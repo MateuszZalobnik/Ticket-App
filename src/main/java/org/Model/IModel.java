@@ -69,4 +69,6 @@ public interface IModel {
 
 	Ticket[] GetTicketForSell();
 
+	void UpdateTicket(String ticketId, boolean isForResell);
+
 }
