@@ -17,4 +17,7 @@ public class User {
 	public String email;
 	public UserRole role;
 
+	public String getLogin() {
+		return login;
+	}
 }

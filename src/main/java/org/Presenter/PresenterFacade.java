@@ -2,6 +2,8 @@ package org.Presenter;
 
 import org.Model.*;
 
+import java.util.ArrayList;
+
 public class PresenterFacade implements IPresenter {
     @Override
     public void CreateAccount(String login, String email, String password, int role) {
@@ -127,5 +129,15 @@ public class PresenterFacade implements IPresenter {
     @Override
     public void BuyTicketFromResell(int ticketId) {
 
+    }
+    @Override
+    public ArrayList<User> SearchUsersInDataBase(String login) {
+        IModel model = new Facade();
+        return model.SearchUsersInDataBase(login);
+
+    }
+    @Override
+    public ArrayList<User> AddBlockedUsers(ArrayList<User> blockedList){
+        return blockedList;
     }
 }

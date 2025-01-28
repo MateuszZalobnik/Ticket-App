@@ -4,6 +4,9 @@ import org.Model.Event;
 import org.Model.Ticket;
 import org.Model.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public interface IPresenter {
 
 	/**
@@ -82,4 +85,8 @@ public interface IPresenter {
 	 */
 	void BuyTicketFromResell(int ticketId);
 
+	ArrayList<User> SearchUsersInDataBase(String login);
+
+
+	ArrayList<User> AddBlockedUsers(ArrayList<User> blockedList);
 }

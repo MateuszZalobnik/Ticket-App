@@ -9,6 +9,7 @@ public class Event {
 	public String organizer;
 	public int userId;
 	public TicketPool[] ticketPools;
+	public Integer[] blockedIds;
 
 	public void addTicketPool(TicketPool ticketPool) {
 		if (ticketPools == null) {
