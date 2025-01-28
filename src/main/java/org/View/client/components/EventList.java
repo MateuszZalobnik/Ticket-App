@@ -28,7 +28,7 @@ public class EventList extends StackPane {
     public EventList(int clientId) {
         this.clientId = clientId;
         IPresenter presenter = new PresenterFacade();
-        events = presenter.GetEventsById(null);
+        events = presenter.GetAvailableEventsById(clientId);
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -129,7 +129,7 @@ public class EventList extends StackPane {
 
     private void Refresh() {
         IPresenter presenter = new PresenterFacade();
-        events = presenter.GetEventsById(null);
+        events = presenter.GetAvailableEventsById(clientId);
         getChildren().clear();
         getChildren().add(new EventList(clientId));
     }

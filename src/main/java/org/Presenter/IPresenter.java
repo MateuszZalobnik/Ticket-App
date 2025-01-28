@@ -24,6 +24,12 @@ public interface IPresenter {
 	User LogIn(String login, String password);
 
 	/**
+	 *
+	 * @param userId
+	 */
+	Event[] GetAvailableEventsById(int userId);
+
+	/**
 	 * 
 	 * @param id
 	 */

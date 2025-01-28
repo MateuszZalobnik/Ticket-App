@@ -22,13 +22,19 @@ public interface IModel {
 	 *
 	 * @param userId
 	 */
-	Event[] GetHistoricalEventsById(Integer userId);
+	Event[] GetHistoricalEventsById(int userId);
 
 	/**
 	 * 
 	 * @param userId
 	 */
-	Event[] GetEventsById(Integer userId);
+	Event[] GetEventsById(int userId);
+
+	/**
+	 *
+	 * @param userId
+	 */
+	Event[] GetAvailableEventsById(int userId);
 
 	/**
 	 *

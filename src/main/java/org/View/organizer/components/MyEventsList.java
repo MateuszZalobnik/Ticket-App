@@ -76,6 +76,22 @@ public class MyEventsList extends StackPane {
         organizer.setFill(Color.BLACK);
         organizer.setWrappingWidth(width - 20);
 
+        if (event.ticketPools.length == 0) {
+            var ticketPoolsTitle = new Text("Wstęp wolny");
+            ticketPoolsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+            ticketPoolsTitle.setFill(Color.BLACK);
+            ticketPoolsTitle.setWrappingWidth(width - 20);
+
+            var textBox = new VBox(10, location, date, organizer, ticketPoolsTitle);
+            textBox.setAlignment(Pos.TOP_CENTER);
+            textBox.setPadding(new javafx.geometry.Insets(10));
+
+            ticketPoolsTitle.setTranslateY(10);
+
+            pane.getChildren().addAll(square, textBox);
+            return pane;
+        }
+
         var ticketPoolsTitle = new Text("Bilety:");
         ticketPoolsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         ticketPoolsTitle.setFill(Color.BLACK);
@@ -96,9 +112,8 @@ public class MyEventsList extends StackPane {
         textBox.setAlignment(Pos.TOP_CENTER);
         textBox.setPadding(new javafx.geometry.Insets(10));
 
-        // Adding extra space specifically after the ticketPoolsTitle and ticketPools
-        ticketPoolsTitle.setTranslateY(10); // Increase space above ticketPoolsTitle
-        ticketPools.setTranslateY(10); // Increase space after ticketPoolsTitle
+        ticketPoolsTitle.setTranslateY(10);
+        ticketPools.setTranslateY(10);
 
         pane.getChildren().addAll(square, textBox);
         return pane;
