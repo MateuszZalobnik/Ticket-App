@@ -47,6 +47,12 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
+    public Event[] GetAvailableEventsById(int userId) {
+        IModel model = new Facade();
+        return model.GetAvailableEventsById(userId);
+    }
+
+    @Override
     public Event[] GetEventsById(Integer id) {
         var model = new Facade();
         return model.GetEventsById(id);
@@ -72,7 +78,8 @@ public class PresenterFacade implements IPresenter {
                     pool.sellStartDate,
                     pool.sellEndDate,
                     false,
-                    pool.number);
+                    pool.number,
+                    -1);
 
             event.addTicketPool(ticketPool);
         }
@@ -87,7 +94,13 @@ public class PresenterFacade implements IPresenter {
 
     @Override
     public void AddOpinion(int userId, int rate, String comment, int eventId) {
-
+        IModel model = new Facade();
+        var opinion = new Opinion();
+        opinion.userId = userId;
+        opinion.opinion = rate;
+        opinion.comment = comment;
+        opinion.eventId = eventId;
+        model.AddOpinion(opinion);
     }
 
     @Override

@@ -2,10 +2,13 @@ package org.View.client.components;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -13,12 +16,17 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.stage.Stage;
 import org.Model.Event;
 import org.Model.Ticket;
 import org.Presenter.IPresenter;
 import org.Presenter.PresenterFacade;
 import org.View.client.ClientView;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MyTickets extends StackPane {
     private Ticket[] tickets;
@@ -95,7 +103,12 @@ public class MyTickets extends StackPane {
         var button = new Button(isHistorical ? "Oceń" : "Odsprzedaj");
         button.setStyle("-fx-text-fill: blue; -fx-font-size: 10px; -fx-underline: true; -fx-background-color: transparent; -fx-cursor: hand;");
         button.setOnAction(e -> {
-            showSellTicketPopup(ticket);
+            IPresenter presenter = new PresenterFacade();
+            if (isHistorical) {
+                OpenRateScene(ticket.ticketPool.eventId);
+            } else {
+                showSellTicketPopup(ticket);
+            }
             Refresh();
         });
 
@@ -215,4 +228,99 @@ public class MyTickets extends StackPane {
 
         getChildren().add(grid);
     }
+
+    private void OpenRateScene(int eventId) {
+        Stage rateStage = new Stage();
+        rateStage.setTitle("Oceń wydarzenie");
+
+        VBox layout = new VBox(20);
+        layout.setPadding(new javafx.geometry.Insets(20));
+        layout.setAlignment(Pos.TOP_CENTER);
+
+        Text title = new Text("Oceń wydarzenie");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+
+        GridPane ratingsGrid = new GridPane();
+        ratingsGrid.setHgap(10);
+        ratingsGrid.setVgap(20);
+        ratingsGrid.setAlignment(Pos.CENTER);
+
+        String[] categories = {"Ocena ogólna", "Atmosfera", "Lokalizacja", "Obsługa", "Jakość/ceny"};
+        Map<String, Integer> ratings = new HashMap<>();
+
+        for (int i = 0; i < categories.length; i++) {
+            String category = categories[i];
+            Text categoryText = new Text(category);
+            categoryText.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
+
+            HBox starsBox = createStarsBox(ratings, category);
+
+            ratingsGrid.add(categoryText, 0, i);
+            ratingsGrid.add(starsBox, 1, i);
+        }
+
+        TextArea commentBox = new TextArea();
+        commentBox.setPromptText("Napisz opinię...");
+        commentBox.setWrapText(true);
+        commentBox.setPrefHeight(100);
+        commentBox.setPrefWidth(400);
+
+        Button submitButton = new Button("Prześlij opinię");
+        submitButton.setStyle("-fx-background-color: #A4C3B2; -fx-text-fill: black;");
+        submitButton.setOnAction(e -> {
+            if (ratings.size() < categories.length || commentBox.getText().isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Błąd");
+                alert.setHeaderText("Dodawanie opinii nie powiodło się");
+                alert.setContentText("Wypełnij wszystkie pola, aby dodać opinię.");
+                alert.showAndWait();
+                return;
+            }
+            IPresenter presenter = new PresenterFacade();
+
+            int averageRating = ratings.values().stream().mapToInt(Integer::intValue).sum() / ratings.size();
+            presenter.AddOpinion(userId, averageRating, commentBox.getText(), eventId);
+            rateStage.close();
+        });
+
+        layout.getChildren().addAll(title, ratingsGrid, new Text("Komentarz:"), commentBox, submitButton);
+
+        Scene scene = new Scene(layout, 600, 500);
+        rateStage.setScene(scene);
+        rateStage.initModality(Modality.APPLICATION_MODAL);
+        rateStage.showAndWait();
+    }
+
+    private HBox createStarsBox(Map<String, Integer> ratings, String category) {
+        HBox starsBox = new HBox(5);
+        starsBox.setAlignment(Pos.CENTER);
+
+        for (int i = 1; i <= 5; i++) {
+            int starValue = i;
+            Button star = new Button("★");
+            star.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+            star.setStyle("-fx-background-color: transparent; -fx-text-fill: gray;");
+
+            star.setOnAction(e -> {
+                ratings.put(category, starValue);
+                updateStarColors(starsBox, starValue);
+            });
+
+            starsBox.getChildren().add(star);
+        }
+
+        return starsBox;
+    }
+
+    private void updateStarColors(HBox starsBox, int rating) {
+        for (int i = 0; i < starsBox.getChildren().size(); i++) {
+            Button star = (Button) starsBox.getChildren().get(i);
+            if (i < rating) {
+                star.setStyle("-fx-background-color: transparent; -fx-text-fill: #346C4C;");
+            } else {
+                star.setStyle("-fx-background-color: transparent; -fx-text-fill: gray;");
+            }
+        }
+    }
+
 }

@@ -153,26 +153,20 @@ public class Facade implements IModel {
 
 
     @Override
-    public Event[] GetHistoricalEventsById(Integer userId) {
+    public Event[] GetHistoricalEventsById(int userId) {
         String sql = "SELECT e.id, e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.uzytkownicyid, " +
                 "p.id AS pool_id, p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli " +
                 "FROM public.wydarzenia e " +
-                "LEFT JOIN public.pule_biletow p ON e.id = p.wydarzeniaid" +
-                " WHERE e.datawydarzeniakoniec < now()";
-
-        if (userId != null) {
-            sql += " AND e.uzytkownicyid = ?";
-        }
+                "LEFT JOIN public.pule_biletow p ON e.id = p.wydarzeniaid " +
+                "WHERE e.datawydarzeniakoniec < now() AND e.uzytkownicyid = ?";
 
         List<Event> events = new ArrayList<>();
 
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            if (userId != null) {
-                statement.setInt(1, userId);
-            }
+            statement.setInt(1, userId);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 Map<Integer, Event> eventMap = new HashMap<>();
@@ -187,21 +181,25 @@ public class Facade implements IModel {
                         event.saleEndDate = resultSet.getString("datawydarzeniakoniec");
                         event.location = resultSet.getString("miejsce");
                         event.organizer = resultSet.getString("organizator");
+                        event.ticketPools = new TicketPool[]{};
 
                         // Add the event to the map
                         eventMap.put(eventId, event);
                     }
 
-                    TicketPool ticketPool = new TicketPool();
-                    ticketPool.id = resultSet.getInt("id");
-                    ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
-                    ticketPool.price = resultSet.getFloat("cenabiletu");
-                    ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                    ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
-                    ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
-                    ticketPool.poolNumber = resultSet.getInt("numerpuli");
+                    int poolId = resultSet.getInt("pool_id");
+                    if (!resultSet.wasNull()) {
+                        TicketPool ticketPool = new TicketPool();
+                        ticketPool.id = poolId;
+                        ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
+                        ticketPool.price = resultSet.getFloat("cenabiletu");
+                        ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
+                        ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                        ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
+                        ticketPool.poolNumber = resultSet.getInt("numerpuli");
 
-                    event.addTicketPool(ticketPool);
+                        event.addTicketPool(ticketPool);
+                    }
                 }
 
                 events.addAll(eventMap.values());
@@ -214,26 +212,20 @@ public class Facade implements IModel {
     }
 
     @Override
-    public Event[] GetEventsById(Integer userId) {
+    public Event[] GetEventsById(int userId) {
         String sql = "SELECT e.id, e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.uzytkownicyid, " +
                 "p.id AS pool_id, p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli " +
                 "FROM public.wydarzenia e " +
-                "LEFT JOIN public.pule_biletow p ON e.id = p.wydarzeniaid" +
-                " WHERE e.datawydarzeniakoniec > now()";
-
-        if (userId != null) {
-            sql += " AND e.uzytkownicyid = ?";
-        }
+                "LEFT JOIN public.pule_biletow p ON e.id = p.wydarzeniaid " +
+                "WHERE e.datawydarzeniakoniec > now() AND e.uzytkownicyid = ?";
 
         List<Event> events = new ArrayList<>();
 
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            if (userId != null) {
-                statement.setInt(1, userId);
-            }
+            statement.setInt(1, userId);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 Map<Integer, Event> eventMap = new HashMap<>();
@@ -248,21 +240,25 @@ public class Facade implements IModel {
                         event.saleEndDate = resultSet.getString("datawydarzeniakoniec");
                         event.location = resultSet.getString("miejsce");
                         event.organizer = resultSet.getString("organizator");
+                        event.ticketPools = new TicketPool[]{};
 
                         // Add the event to the map
                         eventMap.put(eventId, event);
                     }
 
-                    TicketPool ticketPool = new TicketPool();
-                    ticketPool.id = resultSet.getInt("pool_id");
-                    ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
-                    ticketPool.price = resultSet.getFloat("cenabiletu");
-                    ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                    ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
-                    ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
-                    ticketPool.poolNumber = resultSet.getInt("numerpuli");
+                    int poolId = resultSet.getInt("pool_id");
+                    if (!resultSet.wasNull()) {
+                        TicketPool ticketPool = new TicketPool();
+                        ticketPool.id = poolId;
+                        ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
+                        ticketPool.price = resultSet.getFloat("cenabiletu");
+                        ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
+                        ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                        ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
+                        ticketPool.poolNumber = resultSet.getInt("numerpuli");
 
-                    event.addTicketPool(ticketPool);
+                        event.addTicketPool(ticketPool);
+                    }
                 }
 
                 events.addAll(eventMap.values());
@@ -273,6 +269,72 @@ public class Facade implements IModel {
 
         return events.toArray(new Event[0]);
     }
+
+    @Override
+    public Event[] GetAvailableEventsById(int userId) {
+        String sql = "SELECT e.id, e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.uzytkownicyid, " +
+                "p.id AS pool_id, p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
+                "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli " +
+                "FROM public.wydarzenia e " +
+                "LEFT JOIN public.pule_biletow p ON e.id = p.wydarzeniaid " +
+                "WHERE e.datawydarzeniakoniec > now() " +
+                "AND e.id NOT IN (" +
+                "    SELECT z.wydarzeniaid " +
+                "    FROM public.zablokowani_uczestnicy z " +
+                "    WHERE z.uzytkownicyid = ?" +
+                ")";
+
+        List<Event> events = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, userId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                Map<Integer, Event> eventMap = new HashMap<>();
+
+                while (resultSet.next()) {
+                    int eventId = resultSet.getInt("id");
+                    Event event = eventMap.get(eventId);
+
+                    if (event == null) {
+                        event = new Event();
+                        event.sellStartDate = resultSet.getString("datawydarzeniastart");
+                        event.saleEndDate = resultSet.getString("datawydarzeniakoniec");
+                        event.location = resultSet.getString("miejsce");
+                        event.organizer = resultSet.getString("organizator");
+                        event.ticketPools = new TicketPool[]{};
+
+                        // Dodajemy wydarzenie do mapy
+                        eventMap.put(eventId, event);
+                    }
+
+                    // Sprawdzamy, czy dane o puli są dostępne
+                    int poolId = resultSet.getInt("pool_id");
+                    if (!resultSet.wasNull()) {
+                        TicketPool ticketPool = new TicketPool();
+                        ticketPool.id = poolId;
+                        ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
+                        ticketPool.price = resultSet.getFloat("cenabiletu");
+                        ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
+                        ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                        ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
+                        ticketPool.poolNumber = resultSet.getInt("numerpuli");
+
+                        event.addTicketPool(ticketPool);
+                    }
+                }
+
+                events.addAll(eventMap.values());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return events.toArray(new Event[0]);
+    }
+
 
     @Override
     public Ticket[] GetTicketsById(Integer userId) {
@@ -281,7 +343,7 @@ public class Facade implements IModel {
                 "(SELECT COUNT(*) FROM public.bilety WHERE pule_biletowid = p.id) AS liczba_sprzedanych_biletow, " +
                 "p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
-                "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, " +
+                "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.id AS wydarzeniaid " +
                 "b.\"czyOdsprzedaz\" " + // Użycie cudzysłowów dla kolumny
                 "FROM public.bilety b " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
@@ -320,7 +382,8 @@ public class Facade implements IModel {
                             sellStartDate,
                             saleEndDate,
                             shouldStartWhenPreviousPoolEnd,
-                            poolNumber
+                            poolNumber,
+                            eventId
                     );
 
                     String ticketId = resultSet.getString("id");
@@ -350,7 +413,7 @@ public class Facade implements IModel {
                 "(SELECT COUNT(*) FROM public.bilety WHERE pule_biletowid = p.id) AS liczba_sprzedanych_biletow, " +
                 "p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
-                "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator " +
+                "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.id AS wydarzeniaid " +
                 "FROM public.bilety b " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
                 "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
@@ -372,6 +435,7 @@ public class Facade implements IModel {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     int poolId = resultSet.getInt("pool_id");
+                    int eventId = resultSet.getInt("wydarzeniaid");
                     int initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                     int numberOfSoldTickets = resultSet.getInt("liczba_sprzedanych_biletow");
                     float price = resultSet.getFloat("cenabiletu");
@@ -388,7 +452,8 @@ public class Facade implements IModel {
                             sellStartDate,
                             saleEndDate,
                             shouldStartWhenPreviousPoolEnd,
-                            poolNumber
+                            poolNumber,
+                            eventId
                     );
 
                     String ticketId = resultSet.getString("id");
@@ -416,7 +481,22 @@ public class Facade implements IModel {
 
     @Override
     public void AddOpinion(Opinion opinion) {
+        String procedureCall = "INSERT INTO public.opinie (ocena, komentarz, uzytkownicyid, wydarzeniaid) VALUES (?, ?, ?, ?)";
 
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(procedureCall)) {
+
+            preparedStatement.setInt(1, opinion.opinion);
+            preparedStatement.setString(2, opinion.comment);
+            preparedStatement.setInt(3, opinion.userId);
+            preparedStatement.setInt(4, opinion.eventId);
+
+            preparedStatement.execute();
+            System.out.println("Opinia została pomyślnie dodana.");
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas dodawania opinii: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override
