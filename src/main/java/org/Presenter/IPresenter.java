@@ -77,7 +77,7 @@ public interface IPresenter {
 	 */
 	Ticket[] GetHistoricalTickets(int userId);
 
-	Ticket[] GetTicketsForResell();
+	Ticket[] GetTicketsForResell(int userId);
 
 	/**
 	 * 

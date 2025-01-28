@@ -5,15 +5,14 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/bd_1";
+    final String connectionString = "jdbc:postgresql://localhost:5432/test2";
     private Properties props;
 
 
     public Facade() {
         props = new Properties();
-        props.setProperty("user", "postgres");
-        props.setProperty("password", "admin");
-
+        props.setProperty("user", "app_user");
+        props.setProperty("password", "app");
     }
 
     public Connection getConnection() {
@@ -344,11 +343,11 @@ public class Facade implements IModel {
                 "p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
                 "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.id AS wydarzeniaid " +
-                "b.\"czyOdsprzedaz\" " + // Użycie cudzysłowów dla kolumny
                 "FROM public.bilety b " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
                 "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
-                "WHERE e.datawydarzeniakoniec > now() AND b.\"czyOdsprzedaz\" = FALSE"; // Filtrowanie
+                "WHERE e.datawydarzeniakoniec > now() " +
+                "AND b.id NOT IN (SELECT biletyid FROM public.bilety_do_odsprzedania)";
 
         if (userId != null) {
             sql += " AND b.uzytkownicyid = ?";
@@ -373,6 +372,8 @@ public class Facade implements IModel {
                     String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
                     boolean shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
                     int poolNumber = resultSet.getInt("numerpuli");
+                    int eventId = resultSet.getInt("wydarzeniaid");
+//                    boolean isForResell = resultSet.getBoolean("czyOdsprzedaz");
 
                     TicketPool ticketPool = new TicketPool(
                             poolId,
@@ -389,14 +390,12 @@ public class Facade implements IModel {
                     String ticketId = resultSet.getString("id");
                     String location = resultSet.getString("miejsce");
                     String organizer = resultSet.getString("organizator");
-                    float price = resultSet.getFloat("cenabiletu");
-                    boolean isForResell = resultSet.getBoolean("czyOdsprzedaz");
                     String eventStartDate = resultSet.getString("datawydarzeniastart");
                     String eventEndDate = resultSet.getString("datawydarzeniakoniec");
 
-                  Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price, isForResell);
+                    Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price, false);
 
-                  tickets.add(ticket);
+                    tickets.add(ticket);
                 }
             }
         } catch (SQLException e) {
@@ -417,7 +416,8 @@ public class Facade implements IModel {
                 "FROM public.bilety b " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
                 "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
-                "WHERE e.datawydarzeniakoniec < now()";
+                "WHERE e.datawydarzeniakoniec < now() " +
+                "AND b.id NOT IN (SELECT biletyid FROM public.bilety_do_odsprzedania)";
 
         if (userId != null) {
             sql += " AND b.uzytkownicyid = ?";
@@ -459,10 +459,8 @@ public class Facade implements IModel {
                     String ticketId = resultSet.getString("id");
                     String location = resultSet.getString("miejsce");
                     String organizer = resultSet.getString("organizator");
-                    String eventStartDate = resultSet.getString("datawydarzeniastart");
-                    String eventEndDate = resultSet.getString("datawydarzeniakoniec");
 
-                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price, false);
+                    Ticket ticket = new Ticket(ticketId, ticketPool, sellStartDate, saleEndDate, location, organizer, price, false);
                     tickets.add(ticket);
                 }
             }
@@ -539,7 +537,7 @@ public class Facade implements IModel {
     }
 
     @Override
-    public Ticket[] GetTicketForSell() {
+    public Ticket[] GetTicketForSell(int userId) {
         String sql = "SELECT r.biletyid AS ticket_id, " +
                 "b.pule_biletowid, " +
                 "p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
@@ -548,17 +546,18 @@ public class Facade implements IModel {
                 "FROM public.bilety_do_odsprzedania r " +
                 "JOIN public.bilety b ON r.biletyid = b.id " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
-                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id";
+                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
+                "WHERE b.uzytkownicyid != ?";
 
         List<Ticket> tickets = new ArrayList<>();
 
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
+        try {
+            Connection connection = getConnection();
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, userId);
+            ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                //System.out.println("wchodzi tu");
-                // Pobranie danych z ResultSet
                 String ticketId = resultSet.getString("ticket_id");
                 int poolId = resultSet.getInt("pule_biletowid");
                 String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
@@ -567,8 +566,10 @@ public class Facade implements IModel {
                 String organizer = resultSet.getString("organizator");
                 float resellPrice = resultSet.getFloat("resell_price");
 
+                var ticketPool = new TicketPool(poolId, 0, 0, 0, sellStartDate, saleEndDate, false, 0, 0);
+
                 // Tworzenie obiektu Ticket
-                Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, resellPrice, true);
+                Ticket ticket = new Ticket(ticketId, ticketPool, sellStartDate, saleEndDate, location, organizer, resellPrice, true);
                 tickets.add(ticket);
             }
         } catch (SQLException e) {
@@ -577,22 +578,6 @@ public class Facade implements IModel {
 
         // Zwracanie wyników jako tablica
         return tickets.toArray(new Ticket[0]);
-    }
-
-    @Override
-    public void UpdateTicket(String ticketId, boolean isForResell) {
-        String sql = "UPDATE public.bilety SET \"czyOdsprzedaz\" = ? WHERE id = ?";
-
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setBoolean(1, isForResell);
-            statement.setString(2, ticketId);
-            statement.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

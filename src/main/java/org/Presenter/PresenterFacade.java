@@ -111,8 +111,6 @@ public class PresenterFacade implements IPresenter {
         ticketToReSell.ticketId = ticketId;
         ticketToReSell.price = price;
         model.AddTicketForResell(ticketToReSell);
-
-        model.UpdateTicket(ticketId, true);
     }
 
     @Override
@@ -128,9 +126,9 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
-    public Ticket[] GetTicketsForResell() {
+    public Ticket[] GetTicketsForResell(int userId) {
         IModel model = new Facade();
-        return model.GetTicketForSell();
+        return model.GetTicketForSell(userId);
     }
 
     @Override
