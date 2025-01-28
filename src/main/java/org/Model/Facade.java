@@ -5,14 +5,15 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/test2";
+    final String connectionString = "jdbc:postgresql://localhost:5432/bd_1";
     private Properties props;
 
 
     public Facade() {
         props = new Properties();
-        props.setProperty("user", "app_user");
-        props.setProperty("password", "app");
+        props.setProperty("user", "postgres");
+        props.setProperty("password", "admin");
+
     }
 
     public Connection getConnection() {
@@ -343,10 +344,11 @@ public class Facade implements IModel {
                 "p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
                 "e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.id AS wydarzeniaid " +
+                "b.\"czyOdsprzedaz\" " + // Użycie cudzysłowów dla kolumny
                 "FROM public.bilety b " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
                 "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
-                "WHERE e.datawydarzeniakoniec > now()";
+                "WHERE e.datawydarzeniakoniec > now() AND b.\"czyOdsprzedaz\" = FALSE"; // Filtrowanie
 
         if (userId != null) {
             sql += " AND b.uzytkownicyid = ?";
@@ -364,7 +366,6 @@ public class Facade implements IModel {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     int poolId = resultSet.getInt("pool_id");
-                    int eventId = resultSet.getInt("wydarzeniaid");
                     int initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                     int numberOfSoldTickets = resultSet.getInt("liczba_sprzedanych_biletow");
                     float price = resultSet.getFloat("cenabiletu");
@@ -388,11 +389,14 @@ public class Facade implements IModel {
                     String ticketId = resultSet.getString("id");
                     String location = resultSet.getString("miejsce");
                     String organizer = resultSet.getString("organizator");
+                    float price = resultSet.getFloat("cenabiletu");
+                    boolean isForResell = resultSet.getBoolean("czyOdsprzedaz");
                     String eventStartDate = resultSet.getString("datawydarzeniastart");
                     String eventEndDate = resultSet.getString("datawydarzeniakoniec");
 
-                    Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price);
-                    tickets.add(ticket);
+                  Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price, isForResell);
+
+                  tickets.add(ticket);
                 }
             }
         } catch (SQLException e) {
@@ -458,7 +462,7 @@ public class Facade implements IModel {
                     String eventStartDate = resultSet.getString("datawydarzeniastart");
                     String eventEndDate = resultSet.getString("datawydarzeniakoniec");
 
-                    Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price);
+                    Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, price, false);
                     tickets.add(ticket);
                 }
             }
@@ -468,7 +472,6 @@ public class Facade implements IModel {
 
         return tickets.toArray(new Ticket[0]);
     }
-
 
 
     @Override
@@ -515,7 +518,117 @@ public class Facade implements IModel {
     }
 
     @Override
-    public void AddTicketForResell(TicketToReSell ticket) {
+    public void AddTicketForResell(TicketToReSell ticketToReSell) {
+        String procedureCall = "INSERT INTO public.bilety_do_odsprzedania (biletyid, cena) VALUES (?, ?)";
+
+        try (Connection connection = getConnection();
+             CallableStatement callableStatement = connection.prepareCall(procedureCall)) {
+
+            // Set procedure parameters
+            UUID ticketUuid = UUID.fromString(ticketToReSell.ticketId); // Konwersja String na UUID
+            callableStatement.setObject(1, ticketUuid); // Użycie setObject do ustawienia UUID
+            callableStatement.setFloat(2, ticketToReSell.price);
+
+            // Execute the procedure
+            callableStatement.execute();
+            System.out.println("Bilet dodany do bazy z odsprzedaza.");
+        } catch (SQLException e) {
+            System.err.println("Error while adding ticket to the reselling market: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Ticket[] GetTicketForSell() {
+        String sql = "SELECT r.biletyid AS ticket_id, " +
+                "b.pule_biletowid, " +
+                "p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
+                "e.miejsce, e.organizator, " +
+                "r.cena AS resell_price " +
+                "FROM public.bilety_do_odsprzedania r " +
+                "JOIN public.bilety b ON r.biletyid = b.id " +
+                "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
+                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id";
+
+        List<Ticket> tickets = new ArrayList<>();
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                //System.out.println("wchodzi tu");
+                // Pobranie danych z ResultSet
+                String ticketId = resultSet.getString("ticket_id");
+                int poolId = resultSet.getInt("pule_biletowid");
+                String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
+                String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                String location = resultSet.getString("miejsce");
+                String organizer = resultSet.getString("organizator");
+                float resellPrice = resultSet.getFloat("resell_price");
+
+                // Tworzenie obiektu Ticket
+                Ticket ticket = new Ticket(ticketId, poolId, sellStartDate, saleEndDate, location, organizer, resellPrice, true);
+                tickets.add(ticket);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Zwracanie wyników jako tablica
+        return tickets.toArray(new Ticket[0]);
+    }
+
+    @Override
+    public void UpdateTicket(String ticketId, boolean isForResell) {
+        String sql = "UPDATE public.bilety SET \"czyOdsprzedaz\" = ? WHERE id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setBoolean(1, isForResell);
+            statement.setString(2, ticketId);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public ArrayList<User> SearchUsersInDataBase(String login) {
+        ArrayList<User> users = new ArrayList<>();
+        String query = "SELECT id, login, email, haslo FROM uzytkownicy WHERE rola = 0 AND login = ?";
+
+        try (Connection connection = getConnection();
+             CallableStatement stmt = connection.prepareCall(query)) {
+            // Ustawiamy parametr zapytania (login)
+            stmt.setString(1, login);
+
+            // Wykonujemy zapytanie
+            ResultSet rs = stmt.executeQuery();
+
+            // Przetwarzamy wyniki
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String userLogin = rs.getString("login");
+                String email = rs.getString("email");
+
+                // Tworzymy obiekt użytkownika i dodajemy go do listy
+                User user = new User(id, userLogin, email, UserRole.Client);
+                users.add(user);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Obsługuje wyjątek, np. logowanie błędów
+        }
+
+        return users;
+    }
+
+    @Override
+    public void AddBlockedUsers(ArrayList<User> blockedUsers) {
 
     }
+
 }

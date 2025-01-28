@@ -1,6 +1,7 @@
 package org.Model;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public interface IModel {
 
@@ -73,4 +74,11 @@ public interface IModel {
 	 */
 	void AddTicketForResell(TicketToReSell ticket);
 
+	Ticket[] GetTicketForSell();
+
+  void UpdateTicket(String ticketId, boolean isForResell);
+	
+  ArrayList<User> SearchUsersInDataBase(String login);
+	
+  void AddBlockedUsers(ArrayList<User> blockedUsers);
 }

@@ -43,11 +43,15 @@ public class MyEventsList extends StackPane {
             }
         }
 
+        // Tworzymy ScrollPane i dodajemy do niego siatkę
         ScrollPane scrollPane = new ScrollPane(grid);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPannable(true);
+        scrollPane.setFitToWidth(true); // ScrollPane dostosowuje szerokość do okna
+        scrollPane.setPannable(true); // Pozwala przesuwać zawartość
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Ukrywa pasek poziomy
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED); // Pokazuje pasek pionowy w razie potrzeby
 
-        getChildren().add(grid);
+        // Dodanie ScrollPane do StackPane
+        getChildren().add(scrollPane);
     }
 
     private StackPane createEventSquare(Event event) {
