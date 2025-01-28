@@ -5,80 +5,68 @@ import java.util.ArrayList;
 
 public interface IModel {
 
-	void AddUser(User user) throws SQLException;
+    void AddUser(User user) throws SQLException;
 
-	/**
-	 * 
-	 * @param login
-	 * @param password
-	 */
-	User GetUserByCredentials(String login, String password);
+    /**
+     * @param login
+     * @param password
+     */
+    User GetUserByCredentials(String login, String password);
 
-	/**
-	 * 
-	 * @param event
-	 */
-	void AddEvent(Event event);
-	/**
-	 *
-	 * @param userId
-	 */
-	Event[] GetHistoricalEventsById(int userId);
+    /**
+     * @param event
+     */
+    void AddEvent(Event event);
 
-	/**
-	 * 
-	 * @param userId
-	 */
-	Event[] GetEventsById(int userId);
+    /**
+     * @param userId
+     */
+    Event[] GetHistoricalEventsById(int userId);
 
-	/**
-	 *
-	 * @param userId
-	 */
-	Event[] GetAvailableEventsById(int userId);
+    /**
+     * @param userId
+     */
+    Event[] GetEventsById(int userId);
 
-	/**
-	 *
-	 * @param userId
-	 */
-	Ticket[] GetTicketsById(Integer userId);
+    /**
+     * @param userId
+     */
+    Event[] GetAvailableEventsById(int userId);
 
-	/**
-	 *
-	 * @param userId
-	 */
-	Ticket[] GetHistoricalTicketsById(Integer userId);
+    /**
+     * @param userId
+     */
+    Ticket[] GetTicketsById(Integer userId);
 
-	/**
-	 * 
-	 * @param Event
-	 */
-	void UpdateEvent(Event Event);
+    /**
+     * @param userId
+     */
+    Ticket[] GetHistoricalTicketsById(Integer userId);
 
-	/**
-	 * 
-	 * @param opinion
-	 */
-	void AddOpinion(Opinion opinion);
+    /**
+     * @param Event
+     */
+    void UpdateEvent(Event Event);
 
-	/**
-	 * 
-	 * @param ticketPoolId
-	 * @param userId
-	 */
-	void AddTicket(int ticketPoolId, int userId);
+    /**
+     * @param opinion
+     */
+    void AddOpinion(Opinion opinion);
 
-	/**
-	 * 
-	 * @param ticket
-	 */
-	void AddTicketForResell(TicketToReSell ticket);
+    /**
+     * @param ticketPoolId
+     * @param userId
+     */
+    void AddTicket(int ticketPoolId, int userId);
 
-	Ticket[] GetTicketForSell();
+    /**
+     * @param ticket
+     */
+    void AddTicketForResell(TicketToReSell ticket);
 
-  void UpdateTicket(String ticketId, boolean isForResell);
-	
-  ArrayList<User> SearchUsersInDataBase(String login);
-	
-  void AddBlockedUsers(ArrayList<User> blockedUsers);
+    Ticket[] GetTicketForSell(int userId);
+
+    ArrayList<User> SearchUsersInDataBase(String login);
+
+    void AddBlockedUsers(ArrayList<User> blockedUsers);
 }

@@ -22,11 +22,12 @@ import org.View.client.ClientView;
 
 public class MyResells extends StackPane {
     private Ticket[] tickets;
-
-    public MyResells() {
+    private int userId;
+    public MyResells(int userId) {
+        this.userId = userId;
         // Fetch tickets for resale from the presenter
         IPresenter presenter = new PresenterFacade();
-        tickets = presenter.GetTicketsForResell(); // Assumes the presenter has this method implemented
+        tickets = presenter.GetTicketsForResell(userId); // Assumes the presenter has this method implemented
         System.out.println(tickets.length);
         // Create a GridPane layout
         GridPane grid = new GridPane();
