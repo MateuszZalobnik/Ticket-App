@@ -1,8 +1,10 @@
 package org.View.client.components;
 
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -11,10 +13,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import org.Model.Event;
 import org.Model.Ticket;
 import org.Presenter.IPresenter;
 import org.Presenter.PresenterFacade;
+import org.View.client.ClientView;
 
 public class MyTickets extends StackPane {
     private Ticket[] tickets;
@@ -91,8 +95,7 @@ public class MyTickets extends StackPane {
         var button = new Button(isHistorical ? "Oceń" : "Odsprzedaj");
         button.setStyle("-fx-text-fill: blue; -fx-font-size: 10px; -fx-underline: true; -fx-background-color: transparent; -fx-cursor: hand;");
         button.setOnAction(e -> {
-            IPresenter presenter = new PresenterFacade();
-            // TODO
+            showSellTicketPopup(ticket);
             Refresh();
         });
 
@@ -104,10 +107,112 @@ public class MyTickets extends StackPane {
         return pane;
     }
 
+    private void showSellTicketPopup(Ticket ticket) {
+        Stage popupStage = new Stage();
+        popupStage.setTitle("Odsprzedaż biletu");
+
+        // Layout for popup
+        VBox layout = new VBox(10);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new javafx.geometry.Insets(20));
+
+        // Instructions
+        var label = new Text("Podaj cenę odsprzedaży:");
+        label.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
+
+        // Price input
+        var priceField = new TextField();
+        priceField.setPromptText("Cena w zł");
+
+        // Error message
+        var errorMessage = new Text();
+        errorMessage.setFill(Color.RED);
+        errorMessage.setVisible(false);
+
+        // Debugging message
+        var debugMessage = new Text();
+        debugMessage.setFill(Color.BLUE);
+        debugMessage.setVisible(false);
+
+        // Submit button
+        var submitButton = new Button("Potwierdź");
+        submitButton.setOnAction(e -> {
+            String priceText = priceField.getText().trim();
+            try {
+                // Validate price input
+                if (priceText.isEmpty()) {
+                    throw new IllegalArgumentException("Cena nie może być pusta.");
+                }
+
+                System.out.println(priceText);
+                float price = Float.parseFloat(priceText);
+                System.out.println(price);
+                if (price <= 0) {
+                    throw new IllegalArgumentException("Cena musi być większa od 0.");
+                }
+
+                IPresenter presenter = new PresenterFacade();
+                presenter.ResellTicket(ticket.id, price);
+
+                popupStage.close();
+                Refresh();
+
+            } catch (NumberFormatException ex) {
+                errorMessage.setText("Cena musi być liczbą.");
+                errorMessage.setVisible(true);
+                priceField.setStyle("-fx-border-color: red;");
+            } catch (IllegalArgumentException ex) {
+                errorMessage.setText(ex.getMessage());
+                errorMessage.setVisible(true);
+                priceField.setStyle("-fx-border-color: red;");
+            } catch (Exception ex) {
+                // Catching unexpected exceptions
+                errorMessage.setText("Nieoczekiwany błąd: " + ex.getMessage());
+                errorMessage.setVisible(true);
+                ex.printStackTrace(); // For debugging in the console
+            }
+        });
+
+        // Layout organization
+        layout.getChildren().addAll(label, priceField, errorMessage, debugMessage, submitButton);
+
+        // Show popup
+        Scene scene = new Scene(layout);
+        popupStage.setScene(scene);
+        popupStage.show();
+    }
+
+
     private void Refresh() {
         IPresenter presenter = new PresenterFacade();
         tickets = isHistorical ? presenter.GetHistoricalTickets(userId) : presenter.GetTickets(userId);
+
+        // Wyczyść siatkę i dodaj nowe bilety
         getChildren().clear();
-        getChildren().add(new MyTickets(userId, isHistorical));
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setAlignment(Pos.TOP_CENTER);
+        grid.setPadding(new javafx.geometry.Insets(10));
+
+        int row = 0;
+        int column = 0;
+
+        for (int i = 0; i < tickets.length; i++) {
+            StackPane eventPane = createTicketSquare(tickets[i]);
+            GridPane.setFillWidth(eventPane, true);
+            eventPane.setMaxWidth(Double.MAX_VALUE);
+
+            grid.add(eventPane, column, row);
+
+            column++;
+            if (column == 3) { // Resetowanie kolumny po 3 elementach
+                column = 0;
+                row++;
+            }
+        }
+
+        getChildren().add(grid);
     }
 }

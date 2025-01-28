@@ -2,7 +2,7 @@ package org.Model;
 
 public class Ticket {
 
-	public Ticket(String id, TicketPool ticketPool, String sellStartDate, String saleEndDate, String location, String organizer, float price) {
+	public Ticket(String id, TicketPool ticketPool, String sellStartDate, String saleEndDate, String location, String organizer, float price, boolean isForResell) {
 		this.id = id;
 		this.ticketPool = ticketPool;
 		this.sellStartDate = sellStartDate;
@@ -10,6 +10,7 @@ public class Ticket {
 		this.location = location;
 		this.organizer = organizer;
 		this.price = price;
+		this.isForResell = isForResell;
 	}
 
 	public String id;
@@ -19,4 +20,5 @@ public class Ticket {
 	public String location;
 	public String organizer;
 	public float price;
+	public boolean isForResell;
 }

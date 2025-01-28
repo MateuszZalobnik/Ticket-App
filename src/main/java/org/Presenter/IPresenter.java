@@ -2,7 +2,6 @@ package org.Presenter;
 
 import org.Model.Event;
 import org.Model.Ticket;
-import org.Model.TicketToReSell;
 import org.Model.User;
 
 import java.util.ArrayList;
@@ -72,7 +71,7 @@ public interface IPresenter {
 	 */
 	Ticket[] GetHistoricalTickets(int userId);
 
-	TicketToReSell[] GetTicketsForResell();
+	Ticket[] GetTicketsForResell();
 
 	/**
 	 * 

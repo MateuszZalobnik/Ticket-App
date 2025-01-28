@@ -68,6 +68,11 @@ public interface IModel {
 	 */
 	void AddTicketForResell(TicketToReSell ticket);
 
-	ArrayList<User> SearchUsersInDataBase(String login);
-	void AddBlockedUsers(ArrayList<User> blockedUsers);
+	Ticket[] GetTicketForSell();
+
+  void UpdateTicket(String ticketId, boolean isForResell);
+	
+  ArrayList<User> SearchUsersInDataBase(String login);
+	
+  void AddBlockedUsers(ArrayList<User> blockedUsers);
 }

@@ -92,7 +92,14 @@ public class PresenterFacade implements IPresenter {
 
     @Override
     public void ResellTicket(String ticketId, float price) {
+        IModel model = new Facade();
 
+        TicketToReSell ticketToReSell = new TicketToReSell();
+        ticketToReSell.ticketId = ticketId;
+        ticketToReSell.price = price;
+        model.AddTicketForResell(ticketToReSell);
+
+        model.UpdateTicket(ticketId, true);
     }
 
     @Override
@@ -108,8 +115,9 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
-    public TicketToReSell[] GetTicketsForResell() {
-        return new TicketToReSell[0];
+    public Ticket[] GetTicketsForResell() {
+        IModel model = new Facade();
+        return model.GetTicketForSell();
     }
 
     @Override
