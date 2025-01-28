@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class CreateNewEvent extends StackPane {
 
     private final Organizer organizer;
-    private ArrayList<User> blackList;
+    private ArrayList<User> blackList = new ArrayList<>();
 
     public CreateNewEvent(Organizer organizer) {
         this.organizer = organizer;
