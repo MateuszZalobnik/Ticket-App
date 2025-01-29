@@ -3,6 +3,7 @@ package org.Presenter;
 import org.Model.*;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class PresenterFacade implements IPresenter {
     @Override
@@ -140,8 +141,9 @@ public class PresenterFacade implements IPresenter {
     }
 
     @Override
-    public void BuyTicketFromResell(int ticketId) {
-
+    public void BuyTicketFromResell(String ticketId, int newOwnerid) {
+        IModel model = new Facade();
+        model.BuyTicketFromResell(UUID.fromString(ticketId), newOwnerid);
     }
 
     @Override
@@ -159,5 +161,10 @@ public class PresenterFacade implements IPresenter {
     public EventDetails GetEventDetails(int eventId) {
         IModel model = new Facade();
         return model.GetEventDetailsById(eventId);
+    }
+
+    public void DeleteTicketFromResll(String ticketId) {
+        IModel model = new Facade();
+        model.DeleteTicketFromResell(UUID.fromString(ticketId));
     }
 }

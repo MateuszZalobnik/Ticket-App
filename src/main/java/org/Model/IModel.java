@@ -2,6 +2,7 @@ package org.Model;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public interface IModel {
 
@@ -71,4 +72,7 @@ public interface IModel {
     void AddBlockedUsers(ArrayList<User> blockedUsers);
 
     EventDetails GetEventDetailsById(int eventId);
+	void BuyTicketFromResell(UUID ticketId, int newOwnerid);
+
+    void DeleteTicketFromResell(UUID ticketId);
 }

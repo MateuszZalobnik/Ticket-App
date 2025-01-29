@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class Ticket {
 
-	public Ticket(String id, TicketPool ticketPool, LocalDate sellStartDate, LocalDate saleEndDate, String location, String organizer, float price, boolean isForResell) {
+	public Ticket(String id, TicketPool ticketPool, LocalDate sellStartDate, LocalDate saleEndDate, String location, String organizer, float price, boolean isForResell, int userId) {
 		this.id = id;
 		this.ticketPool = ticketPool;
 		this.sellStartDate = sellStartDate;
@@ -13,6 +13,7 @@ public class Ticket {
 		this.organizer = organizer;
 		this.price = price;
 		this.isForResell = isForResell;
+		this.userId = userId;
 	}
 
 	public String id;
@@ -23,4 +24,5 @@ public class Ticket {
 	public String organizer;
 	public float price;
 	public boolean isForResell;
+	public int userId;
 }
