@@ -6,6 +6,7 @@ import org.Model.User;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public interface IPresenter {
 
@@ -89,10 +90,12 @@ public interface IPresenter {
 	 * 
 	 * @param ticketId
 	 */
-	void BuyTicketFromResell(int ticketId);
+	void BuyTicketFromResell(String ticketId, int newOwnerid);
 
 	ArrayList<User> SearchUsersInDataBase(String login);
 
 
 	ArrayList<User> AddBlockedUsers(ArrayList<User> blockedList);
+
+	void DeleteTicketFromResll(String ticketId);
 }

@@ -2,6 +2,7 @@ package org.Model;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public interface IModel {
 
@@ -69,4 +70,8 @@ public interface IModel {
     ArrayList<User> SearchUsersInDataBase(String login);
 
     void AddBlockedUsers(ArrayList<User> blockedUsers);
+
+	void BuyTicketFromResell(UUID ticketId, int newOwnerid);
+
+    void DeleteTicketFromResell(UUID ticketId);
 }

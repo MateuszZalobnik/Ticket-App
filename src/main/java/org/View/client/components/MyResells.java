@@ -25,11 +25,10 @@ public class MyResells extends StackPane {
     private int userId;
     public MyResells(int userId) {
         this.userId = userId;
-        // Fetch tickets for resale from the presenter
         IPresenter presenter = new PresenterFacade();
-        tickets = presenter.GetTicketsForResell(userId); // Assumes the presenter has this method implemented
+        tickets = presenter.GetTicketsForResell(userId);
         System.out.println(tickets.length);
-        // Create a GridPane layout
+
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -39,7 +38,6 @@ public class MyResells extends StackPane {
         int row = 0;
         int column = 0;
 
-        // Populate the grid with ticket information
         for (int i = 0; i < tickets.length; i++) {
             StackPane ticketPane = createTicketSquare(tickets[i]);
 
@@ -49,23 +47,19 @@ public class MyResells extends StackPane {
             grid.add(ticketPane, column, row);
 
             column++;
-            if (column == 3) { // Reset column after 3 elements
+            if (column == 3) {
                 column = 0;
                 row++;
             }
         }
 
-        // Add the grid to a scrollable pane
         ScrollPane scrollPane = new ScrollPane(grid);
         scrollPane.setFitToWidth(true);
         scrollPane.setPannable(true);
 
-        getChildren().add(scrollPane); // Add the scroll pane to the main StackPane
+        getChildren().add(scrollPane); // Add the scroll pane to the main pane
     }
 
-    /**
-     * Creates a visual representation of a ticket.
-     */
     private StackPane createTicketSquare(Ticket ticket) {
         var pane = new StackPane();
         var width = 350;
@@ -97,13 +91,80 @@ public class MyResells extends StackPane {
         price.setFill(Color.BLACK);
         price.setWrappingWidth(width - 20);
 
-        // Add elements to the pane
-        var vbox = new VBox(location, date, organizer, price);
+
+        Button button = null;
+        if (ticket.userId != userId) {
+            button = new Button("Kup");
+            button.setStyle("-fx-text-fill: blue; -fx-font-size: 10px; -fx-underline: true; -fx-background-color: transparent; -fx-cursor: hand;");
+            button.setOnAction(e -> {
+                try {
+                    IPresenter presenter = new PresenterFacade();
+                    presenter.BuyTicketFromResell(ticket.id, userId);
+
+                    // Usuwanie biletu z listy
+                    tickets = removeTicketFromArray(tickets, ticket);
+
+                    // Odśwież widok
+                    refreshTickets();
+
+                    System.out.println("Zakupiono bilet o ID: " + ticket.id);
+                    presenter.DeleteTicketFromResll(ticket.id);
+                } catch (Exception ex) {
+                    System.err.println("Zakup nie powiódł się dla biletu o ID: " + ticket.id);
+                    ex.printStackTrace();
+                }
+            });
+        }
+
+        var vbox = button != null
+                ? new VBox(location, date, organizer, price, button)
+                : new VBox(location, date, organizer, price);
+
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(5);
 
         pane.getChildren().addAll(square, vbox);
         return pane;
     }
+
+    private Ticket[] removeTicketFromArray(Ticket[] tickets, Ticket ticketToRemove) {
+        return java.util.Arrays.stream(tickets)
+                .filter(t -> !t.id.equals(ticketToRemove.id))
+                .toArray(Ticket[]::new);
+    }
+
+    private void refreshTickets() {
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setAlignment(Pos.TOP_CENTER);
+        grid.setPadding(new javafx.geometry.Insets(10));
+
+        int row = 0;
+        int column = 0;
+
+        for (int i = 0; i < tickets.length; i++) {
+            StackPane ticketPane = createTicketSquare(tickets[i]);
+
+            GridPane.setFillWidth(ticketPane, true);
+            ticketPane.setMaxWidth(Double.MAX_VALUE);
+
+            grid.add(ticketPane, column, row);
+
+            column++;
+            if (column == 3) {
+                column = 0;
+                row++;
+            }
+        }
+
+        // Aktualizuj główny widok
+        getChildren().clear();
+        ScrollPane scrollPane = new ScrollPane(grid);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPannable(true);
+        getChildren().add(scrollPane);
+    }
+
 }
 
