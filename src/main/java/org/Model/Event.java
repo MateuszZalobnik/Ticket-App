@@ -1,10 +1,12 @@
 package org.Model;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 
 public class Event {
-	public String sellStartDate;
-	public String saleEndDate;
+	public int id;
+	public LocalDate sellStartDate;
+	public LocalDate saleEndDate;
 	public String location;
 	public String organizer;
 	public int userId;

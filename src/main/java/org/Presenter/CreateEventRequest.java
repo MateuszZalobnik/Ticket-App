@@ -1,10 +1,11 @@
 package org.Presenter;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CreateEventRequest {
-	public CreateEventRequest (String startDate, String endDate, String place, String organizer, int userId, ArrayList<TicketPoolRequest> ticketPools, ArrayList<Integer> blackList) {
+	public CreateEventRequest (LocalDate startDate, LocalDate endDate, String place, String organizer, int userId, ArrayList<TicketPoolRequest> ticketPools, ArrayList<Integer> blackList) {
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.place = place;
@@ -14,8 +15,8 @@ public class CreateEventRequest {
 		this.blackList = blackList;
 	}
 
-	public String startDate;
-	public String endDate;
+	public LocalDate startDate;
+	public LocalDate endDate;
 	public String place;
 	public String organizer;
 	public int userId;
