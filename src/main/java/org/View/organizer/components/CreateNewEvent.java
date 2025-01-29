@@ -17,7 +17,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,6 +89,7 @@ public class CreateNewEvent extends StackPane {
         DatePicker poolEndDatePicker = new DatePicker();
 
         CheckBox startAfterPrevious = new CheckBox("Rozpocznij po wyczerpaniu poprzedniej puli");
+        startAfterPrevious.setDisable(true);
 
         ticketPoolForm.add(poolNumberLabel, 0, 0);
         ticketPoolForm.add(poolNumberField, 0, 1);
@@ -107,12 +110,12 @@ public class CreateNewEvent extends StackPane {
         ticketPoolsDisplay.setAlignment(Pos.TOP_LEFT);
 
         addPoolButton.setOnAction(event -> {
-            if (validatePoolData(poolNumberField, quantityField, priceField, poolStartDatePicker, poolEndDatePicker)) {
+            if (validatePoolData(poolNumberField, quantityField, priceField, poolStartDatePicker, poolEndDatePicker, ticketPools)) {
                 int poolNumber = Integer.parseInt(poolNumberField.getText());
                 int quantity = Integer.parseInt(quantityField.getText());
                 float price = Float.parseFloat(priceField.getText());
-                String poolStartDate = poolStartDatePicker.getValue() != null ? poolStartDatePicker.getValue().toString() : null;
-                String poolEndDate = poolEndDatePicker.getValue() != null ? poolEndDatePicker.getValue().toString() : null;
+                LocalDate poolStartDate = poolStartDatePicker.getValue() != null ? poolStartDatePicker.getValue() : null;
+                LocalDate poolEndDate = poolEndDatePicker.getValue() != null ? poolEndDatePicker.getValue() : null;
                 boolean startAfter = startAfterPrevious.isSelected();
 
                 var ticketPool = new TicketPoolRequest(quantity, price, poolStartDate, poolEndDate, startAfter, poolNumber);
@@ -122,6 +125,8 @@ public class CreateNewEvent extends StackPane {
                         + ", Data rozpoczęcia: " + poolStartDate + ", Data zakończenia: " + poolEndDate
                         + ", Rozpocznij po poprzedniej: " + (startAfter ? "Tak" : "Nie"));
                 ticketPoolsDisplay.getChildren().add(ticketPoolDetails);
+
+                startAfterPrevious.setDisable(false);
             }
         });
 
@@ -185,8 +190,8 @@ public class CreateNewEvent extends StackPane {
             if (validateFormData(nameField, locationField, startDatePicker, endDatePicker)) {
                 String eventName = nameField.getText();
                 String eventLocation = locationField.getText();
-                String startDate = startDatePicker.getValue() != null ? startDatePicker.getValue().toString() : null;
-                String endDate = endDatePicker.getValue() != null ? endDatePicker.getValue().toString() : null;
+                LocalDate startDate = startDatePicker.getValue() != null ? startDatePicker.getValue() : null;
+                LocalDate endDate = endDatePicker.getValue() != null ? endDatePicker.getValue() : null;
 
                 var facade = new PresenterFacade();
                 facade.CreateEvent(new CreateEventRequest(
@@ -197,8 +202,8 @@ public class CreateNewEvent extends StackPane {
                         organizer.id,
                         ticketPools,
                         new ArrayList<>(blackList.stream()
-                                .map(U -> U.id) // mapujemy na Integer
-                                .collect(Collectors.toList())) // zbieramy do List<Integer>
+                                .map(U -> U.id)
+                                .collect(Collectors.toList()))
                 ));
 
                 getChildren().clear();
@@ -236,9 +241,12 @@ public class CreateNewEvent extends StackPane {
         return true;
     }
 
-    private boolean validatePoolData(TextField poolNumberField, TextField quantityField, TextField priceField, DatePicker poolStartDatePicker, DatePicker poolEndDatePicker) {
+    private boolean validatePoolData(TextField poolNumberField, TextField quantityField, TextField priceField,
+                                     DatePicker poolStartDatePicker, DatePicker poolEndDatePicker,
+                                     ArrayList<TicketPoolRequest> ticketPools) {
         try {
-            if (poolNumberField.getText().isEmpty() || quantityField.getText().isEmpty() || priceField.getText().isEmpty() || poolStartDatePicker.getValue() == null || poolEndDatePicker.getValue() == null) {
+            if (poolNumberField.getText().isEmpty() || quantityField.getText().isEmpty() || priceField.getText().isEmpty()
+                    || poolStartDatePicker.getValue() == null || poolEndDatePicker.getValue() == null) {
                 showAlert("Wszystkie pola puli biletów muszą być wypełnione.");
                 return false;
             }
@@ -246,6 +254,9 @@ public class CreateNewEvent extends StackPane {
             int poolNumber = Integer.parseInt(poolNumberField.getText());
             int quantity = Integer.parseInt(quantityField.getText());
             float price = Float.parseFloat(priceField.getText());
+
+            LocalDate startDate = poolStartDatePicker.getValue();
+            LocalDate endDate = poolEndDatePicker.getValue();
 
             if (poolNumber <= 0) {
                 showAlert("Numer puli musi być liczbą dodatnią.");
@@ -259,17 +270,34 @@ public class CreateNewEvent extends StackPane {
                 showAlert("Cena musi być liczbą dodatnią.");
                 return false;
             }
-
-            if (poolStartDatePicker.getValue().isAfter(poolEndDatePicker.getValue())) {
+            if (startDate.isAfter(endDate)) {
                 showAlert("Data rozpoczęcia puli nie może być późniejsza niż data zakończenia.");
                 return false;
             }
+
+            // Sprawdzenie, czy numer puli jest unikalny
+            for (TicketPoolRequest pool : ticketPools) {
+                if (pool.number == poolNumber) {
+                    showAlert("Istnieje już pula z tym numerem (" + poolNumber + ").");
+                    return false;
+                }
+            }
+
+            // Sprawdzenie nakładających się dat
+            for (TicketPoolRequest pool : ticketPools) {
+                if (!(endDate.isBefore(pool.sellStartDate) || startDate.isAfter(pool.sellEndDate))) {
+                    showAlert("Daty puli pokrywają się z inną pulą (Pula nr " + pool.number + ").");
+                    return false;
+                }
+            }
+
         } catch (NumberFormatException e) {
             showAlert("Numer, ilość i cena muszą być liczbami.");
             return false;
         }
         return true;
     }
+
 
     private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

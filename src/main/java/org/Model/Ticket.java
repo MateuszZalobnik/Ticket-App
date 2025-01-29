@@ -1,8 +1,10 @@
 package org.Model;
 
+import java.time.LocalDate;
+
 public class Ticket {
 
-	public Ticket(String id, TicketPool ticketPool, String sellStartDate, String saleEndDate, String location, String organizer, float price, boolean isForResell) {
+	public Ticket(String id, TicketPool ticketPool, LocalDate sellStartDate, LocalDate saleEndDate, String location, String organizer, float price, boolean isForResell) {
 		this.id = id;
 		this.ticketPool = ticketPool;
 		this.sellStartDate = sellStartDate;
@@ -15,8 +17,8 @@ public class Ticket {
 
 	public String id;
 	public TicketPool ticketPool;
-	public String sellStartDate;
-	public String saleEndDate;
+	public LocalDate sellStartDate;
+	public LocalDate saleEndDate;
 	public String location;
 	public String organizer;
 	public float price;

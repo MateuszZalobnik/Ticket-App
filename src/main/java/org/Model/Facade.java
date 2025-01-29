@@ -1,11 +1,12 @@
 package org.Model;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/test2";
+    final String connectionString = "jdbc:postgresql://localhost:5432/ticket-app";
     private Properties props;
 
 
@@ -99,6 +100,7 @@ public class Facade implements IModel {
     public void AddEvent(Event event) {
         String eventInsertQuery = "INSERT INTO public.wydarzenia (datawydarzeniastart, datawydarzeniakoniec, miejsce, organizator, uzytkownicyid) VALUES (?, ?, ?, ?, ?) RETURNING id";
         String ticketPoolInsertQuery = "INSERT INTO public.pule_biletow (iloscbiletow, cenabiletu, datarozpoczeciasprzedazy, datazakonczeniesprzedazy, rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, numerpuli, wydarzeniaid) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String blockedUserInsertQuery = "INSERT INTO public.zablokowani_uczestnicy (uzytkownicyid, wydarzeniaid) VALUES (?, ?)";
 
         Connection connection = getConnection();
         try {
@@ -133,6 +135,18 @@ public class Facade implements IModel {
                         ticketPoolStatement.setInt(7, eventId);
 
                         ticketPoolStatement.executeUpdate();
+                    }
+                }
+            }
+
+            // Dodanie zablokowanych użytkowników
+            if (event.blockedIds != null) {
+                try (PreparedStatement blockedUserStatement = connection.prepareStatement(blockedUserInsertQuery)) {
+                    for (int blockedUserId : event.blockedIds) {
+                        blockedUserStatement.setInt(1, blockedUserId);
+                        blockedUserStatement.setInt(2, eventId);
+
+                        blockedUserStatement.executeUpdate();
                     }
                 }
             }
@@ -176,8 +190,9 @@ public class Facade implements IModel {
 
                     if (event == null) {
                         event = new Event();
-                        event.sellStartDate = resultSet.getString("datawydarzeniastart");
-                        event.saleEndDate = resultSet.getString("datawydarzeniakoniec");
+                        event.id = eventId;
+                        event.sellStartDate = LocalDate.parse(resultSet.getString("datawydarzeniastart"));
+                        event.saleEndDate = LocalDate.parse(resultSet.getString("datawydarzeniakoniec"));
                         event.location = resultSet.getString("miejsce");
                         event.organizer = resultSet.getString("organizator");
                         event.ticketPools = new TicketPool[]{};
@@ -192,8 +207,8 @@ public class Facade implements IModel {
                         ticketPool.id = poolId;
                         ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                         ticketPool.price = resultSet.getFloat("cenabiletu");
-                        ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                        ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                        ticketPool.sellStartDate = LocalDate.parse(resultSet.getString("datarozpoczeciasprzedazy"));
+                        ticketPool.sellEndDate = LocalDate.parse(resultSet.getString("datazakonczeniesprzedazy"));
                         ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
                         ticketPool.poolNumber = resultSet.getInt("numerpuli");
 
@@ -235,8 +250,9 @@ public class Facade implements IModel {
 
                     if (event == null) {
                         event = new Event();
-                        event.sellStartDate = resultSet.getString("datawydarzeniastart");
-                        event.saleEndDate = resultSet.getString("datawydarzeniakoniec");
+                        event.id = eventId;
+                        event.sellStartDate = LocalDate.parse(resultSet.getString("datawydarzeniastart"));
+                        event.saleEndDate = LocalDate.parse(resultSet.getString("datawydarzeniakoniec"));
                         event.location = resultSet.getString("miejsce");
                         event.organizer = resultSet.getString("organizator");
                         event.ticketPools = new TicketPool[]{};
@@ -251,8 +267,8 @@ public class Facade implements IModel {
                         ticketPool.id = poolId;
                         ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                         ticketPool.price = resultSet.getFloat("cenabiletu");
-                        ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                        ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                        ticketPool.sellStartDate = LocalDate.parse(resultSet.getString("datarozpoczeciasprzedazy"));
+                        ticketPool.sellEndDate = LocalDate.parse(resultSet.getString("datazakonczeniesprzedazy"));
                         ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
                         ticketPool.poolNumber = resultSet.getInt("numerpuli");
 
@@ -299,8 +315,9 @@ public class Facade implements IModel {
 
                     if (event == null) {
                         event = new Event();
-                        event.sellStartDate = resultSet.getString("datawydarzeniastart");
-                        event.saleEndDate = resultSet.getString("datawydarzeniakoniec");
+                        event.id = eventId;
+                        event.sellStartDate = LocalDate.parse(resultSet.getString("datawydarzeniastart"));
+                        event.saleEndDate = LocalDate.parse(resultSet.getString("datawydarzeniakoniec"));
                         event.location = resultSet.getString("miejsce");
                         event.organizer = resultSet.getString("organizator");
                         event.ticketPools = new TicketPool[]{};
@@ -316,8 +333,8 @@ public class Facade implements IModel {
                         ticketPool.id = poolId;
                         ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                         ticketPool.price = resultSet.getFloat("cenabiletu");
-                        ticketPool.sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                        ticketPool.sellEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                        ticketPool.sellStartDate = LocalDate.parse(resultSet.getString("datarozpoczeciasprzedazy"));
+                        ticketPool.sellEndDate = LocalDate.parse(resultSet.getString("datazakonczeniesprzedazy"));
                         ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
                         ticketPool.poolNumber = resultSet.getInt("numerpuli");
 
@@ -368,12 +385,11 @@ public class Facade implements IModel {
                     int initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                     int numberOfSoldTickets = resultSet.getInt("liczba_sprzedanych_biletow");
                     float price = resultSet.getFloat("cenabiletu");
-                    String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                    String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                    LocalDate sellStartDate = LocalDate.parse(resultSet.getString("datarozpoczeciasprzedazy"));
+                    LocalDate saleEndDate = LocalDate.parse(resultSet.getString("datazakonczeniesprzedazy"));
                     boolean shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
                     int poolNumber = resultSet.getInt("numerpuli");
                     int eventId = resultSet.getInt("wydarzeniaid");
-//                    boolean isForResell = resultSet.getBoolean("czyOdsprzedaz");
 
                     TicketPool ticketPool = new TicketPool(
                             poolId,
@@ -390,8 +406,8 @@ public class Facade implements IModel {
                     String ticketId = resultSet.getString("id");
                     String location = resultSet.getString("miejsce");
                     String organizer = resultSet.getString("organizator");
-                    String eventStartDate = resultSet.getString("datawydarzeniastart");
-                    String eventEndDate = resultSet.getString("datawydarzeniakoniec");
+                    LocalDate eventStartDate = LocalDate.parse(resultSet.getString("datawydarzeniastart"));
+                    LocalDate eventEndDate = LocalDate.parse(resultSet.getString("datawydarzeniakoniec"));
 
                     Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price, false);
 
@@ -439,8 +455,8 @@ public class Facade implements IModel {
                     int initialNumberOfTickets = resultSet.getInt("iloscbiletow");
                     int numberOfSoldTickets = resultSet.getInt("liczba_sprzedanych_biletow");
                     float price = resultSet.getFloat("cenabiletu");
-                    String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                    String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                    LocalDate sellStartDate = LocalDate.parse(resultSet.getString("datarozpoczeciasprzedazy"));
+                    LocalDate saleEndDate = LocalDate.parse(resultSet.getString("datazakonczeniesprzedazy"));
                     boolean shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
                     int poolNumber = resultSet.getInt("numerpuli");
 
@@ -560,8 +576,8 @@ public class Facade implements IModel {
             while (resultSet.next()) {
                 String ticketId = resultSet.getString("ticket_id");
                 int poolId = resultSet.getInt("pule_biletowid");
-                String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
-                String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
+                LocalDate sellStartDate = LocalDate.parse(resultSet.getString("datarozpoczeciasprzedazy"));
+                LocalDate saleEndDate = LocalDate.parse(resultSet.getString("datazakonczeniesprzedazy"));
                 String location = resultSet.getString("miejsce");
                 String organizer = resultSet.getString("organizator");
                 float resellPrice = resultSet.getFloat("resell_price");
@@ -616,4 +632,93 @@ public class Facade implements IModel {
 
     }
 
+    @Override
+    public EventDetails GetEventDetailsById(int eventId) {
+        String sql = "SELECT e.id, e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.uzytkownicyid, " +
+                "p.id AS pool_id, p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
+                "p.rozpoczeciesprzedazypozakonczeniupoprzedniejpuli, p.numerpuli, " +
+                "o.id AS opinion_id, o.ocena, o.komentarz, o.uzytkownicyid AS opinion_user_id, " +
+                "u.id AS user_id, u.login, u.email " +
+                "FROM public.wydarzenia e " +
+                "LEFT JOIN public.pule_biletow p ON e.id = p.wydarzeniaid " +
+                "LEFT JOIN public.bilety b ON p.id = b.pule_biletowid " +
+                "LEFT JOIN public.uzytkownicy u ON b.uzytkownicyid = u.id " +
+                "LEFT JOIN public.opinie o ON e.id = o.wydarzeniaid AND o.uzytkownicyid = u.id " +
+                "WHERE e.id = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, eventId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                EventDetails eventDetails = new EventDetails();
+                List<TicketPool> ticketPools = new ArrayList<>();
+                List<Opinion> opinions = new ArrayList<>();
+                List<User> users = new ArrayList<>();
+                Set<Integer> addedUsers = new HashSet<>(); // Set for preventing duplicate users
+                Set<Integer> addedPools = new HashSet<>(); // Set for preventing duplicate pools
+
+                while (resultSet.next()) {
+                    if (eventDetails.id == 0) {
+                        eventDetails.id = resultSet.getInt("id");
+                        eventDetails.sellStartDate = LocalDate.parse(resultSet.getString("datawydarzeniastart"));
+                        eventDetails.saleEndDate = LocalDate.parse(resultSet.getString("datawydarzeniakoniec"));
+                        eventDetails.location = resultSet.getString("miejsce");
+                        eventDetails.organizer = resultSet.getString("organizator");
+                        eventDetails.userId = resultSet.getInt("uzytkownicyid");
+                    }
+
+                    int poolId = resultSet.getInt("pool_id");
+                    if (!resultSet.wasNull() && !addedPools.contains(poolId)) {
+                        TicketPool ticketPool = new TicketPool();
+                        ticketPool.id = poolId;
+                        ticketPool.initialNumberOfTickets = resultSet.getInt("iloscbiletow");
+                        ticketPool.price = resultSet.getFloat("cenabiletu");
+                        ticketPool.sellStartDate = LocalDate.parse(resultSet.getString("datarozpoczeciasprzedazy"));
+                        ticketPool.sellEndDate = LocalDate.parse(resultSet.getString("datazakonczeniesprzedazy"));
+                        ticketPool.shouldStartWhenPreviousPoolEnd = resultSet.getBoolean("rozpoczeciesprzedazypozakonczeniupoprzedniejpuli");
+                        ticketPool.poolNumber = resultSet.getInt("numerpuli");
+
+                        ticketPools.add(ticketPool);
+                        addedPools.add(poolId); // Mark pool as added
+                    }
+
+                    int opinionId = resultSet.getInt("opinion_id");
+                    if (!resultSet.wasNull()) {
+                        Opinion opinion = new Opinion();
+                        opinion.id = opinionId;
+                        opinion.opinion = resultSet.getInt("ocena");
+                        opinion.comment = resultSet.getString("komentarz");
+                        opinion.userId = resultSet.getInt("opinion_user_id");
+                        opinion.userLogin = resultSet.getString("login");
+                        opinion.eventId = eventDetails.id;
+                        opinions.add(opinion);
+                    }
+
+                    int userId = resultSet.getInt("user_id");
+                    if (!resultSet.wasNull() && addedUsers.add(userId)) {
+                        User user = new User();
+                        user.id = userId;
+                        user.login = resultSet.getString("login");
+                        user.email = resultSet.getString("email");
+                        users.add(user);
+                    }
+                }
+
+                eventDetails.ticketPools = ticketPools.toArray(new TicketPool[0]);
+                eventDetails.opinions = opinions.toArray(new Opinion[0]);
+                eventDetails.users = users.toArray(new User[0]);
+
+                for (TicketPool pool : ticketPools) {
+                    System.out.println(pool.poolNumber);
+                }
+                return eventDetails;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

@@ -83,6 +83,8 @@ public class PresenterFacade implements IPresenter {
 
             event.addTicketPool(ticketPool);
         }
+
+        event.blockedIds = request.blackList.toArray(new Integer[0]);
         model.AddEvent(event);
     }
 
@@ -141,6 +143,7 @@ public class PresenterFacade implements IPresenter {
     public void BuyTicketFromResell(int ticketId) {
 
     }
+
     @Override
     public ArrayList<User> SearchUsersInDataBase(String login) {
         IModel model = new Facade();
@@ -150,5 +153,11 @@ public class PresenterFacade implements IPresenter {
     @Override
     public ArrayList<User> AddBlockedUsers(ArrayList<User> blockedList){
         return blockedList;
+    }
+
+    @Override
+    public EventDetails GetEventDetails(int eventId) {
+        IModel model = new Facade();
+        return model.GetEventDetailsById(eventId);
     }
 }

@@ -30,7 +30,7 @@ public class OrganizerView {
         var navigationList = List.of("Moje wydarzenia", "Historia wydarzeń", "Dodaj wydarzenie");
         var navigationBar = new NavigationBar(navigationList, (viewName) -> {
             switch (viewName) {
-                case "Moje wydarzenia" -> switchView(new MyEventsList(organizer.id, false)); // TODO NULL is not a valid id
+                case "Moje wydarzenia" -> switchView(new MyEventsList(organizer.id, false));
                 case "Historia wydarzeń" -> switchView(new MyEventsList(organizer.id, true));
                 case "Dodaj wydarzenie" -> switchView(new CreateNewEvent(organizer));
             }

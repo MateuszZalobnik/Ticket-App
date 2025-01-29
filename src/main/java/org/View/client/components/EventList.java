@@ -19,6 +19,7 @@ import org.Presenter.PresenterFacade;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class EventList extends StackPane {
@@ -135,27 +136,23 @@ public class EventList extends StackPane {
     }
 
     public TicketPool getCurrentTicketPool(TicketPool[] ticketPools) {
-        Date currentDate = new Date();
+        LocalDate currentDate = new Date().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
 
         for (TicketPool pool : ticketPools) {
-            try {
-                if (pool.numberOfSoldTickets < pool.initialNumberOfTickets) {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    Date sellStart = dateFormat.parse(pool.sellStartDate);
-                    Date sellEnd = dateFormat.parse(pool.sellEndDate);
+            if (pool.numberOfSoldTickets < pool.initialNumberOfTickets) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                LocalDate sellStart = pool.sellStartDate;
+                LocalDate sellEnd = pool.sellEndDate;
 
-                    if (currentDate.after(sellStart) && currentDate.before(sellEnd)) {
-                        return pool;
-                    }
-                }
-
-                if (pool.numberOfSoldTickets >= pool.initialNumberOfTickets && pool.shouldStartWhenPreviousPoolEnd) {
+                if (!currentDate.isBefore(sellStart) && !currentDate.isAfter(sellEnd)) {
                     return pool;
                 }
-
-            } catch (ParseException e) {
-                e.printStackTrace();
             }
+
+            if (pool.numberOfSoldTickets >= pool.initialNumberOfTickets && pool.shouldStartWhenPreviousPoolEnd) {
+                return pool;
+            }
+
         }
 
         return null;

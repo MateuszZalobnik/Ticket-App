@@ -10,10 +10,9 @@ public class App extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-		// Start with the Login view
 		GridPane loginView = UILogin.getView(primaryStage);
 		Scene scene = new Scene(loginView, 400, 300);
-		primaryStage.setTitle("Login and Registration");
+		primaryStage.setTitle("Ticket-app");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}

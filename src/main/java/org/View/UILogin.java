@@ -84,10 +84,10 @@ public class UILogin extends BaseUILogin {
                 errorLabel.setVisible(true);
             } else if (user.role == UserRole.Client) {
                 var clientView = new ClientView((Client) user, stage);
-                stage.setScene(new Scene(clientView.getView(), 800, 600));
+                stage.setScene(new Scene(clientView.getView(), 1200, 600));
             } else if (user.role == UserRole.Organizer) {
                 var organizerView = new OrganizerView((Organizer) user, stage);
-                stage.setScene(new Scene(organizerView.getView(), 800, 600));
+                stage.setScene(new Scene(organizerView.getView(), 1200, 600));
             }
         });
 

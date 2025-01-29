@@ -1,6 +1,7 @@
 package org.Presenter;
 
 import org.Model.Event;
+import org.Model.EventDetails;
 import org.Model.Ticket;
 import org.Model.User;
 
@@ -95,4 +96,6 @@ public interface IPresenter {
 
 
 	ArrayList<User> AddBlockedUsers(ArrayList<User> blockedList);
+
+	EventDetails GetEventDetails(int eventId);
 }
