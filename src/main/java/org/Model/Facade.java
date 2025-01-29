@@ -5,14 +5,14 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/test2";
+    final String connectionString = "jdbc:postgresql://localhost:5432/bd_1";
     private Properties props;
 
 
     public Facade() {
         props = new Properties();
-        props.setProperty("user", "app_user");
-        props.setProperty("password", "app");
+        props.setProperty("user", "postgres");
+        props.setProperty("password", "admin");
     }
 
     public Connection getConnection() {
@@ -393,7 +393,7 @@ public class Facade implements IModel {
                     String eventStartDate = resultSet.getString("datawydarzeniastart");
                     String eventEndDate = resultSet.getString("datawydarzeniakoniec");
 
-                    Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price, false);
+                    Ticket ticket = new Ticket(ticketId, ticketPool, eventStartDate, eventEndDate, location, organizer, price, false, -1);
 
                     tickets.add(ticket);
                 }
@@ -460,7 +460,7 @@ public class Facade implements IModel {
                     String location = resultSet.getString("miejsce");
                     String organizer = resultSet.getString("organizator");
 
-                    Ticket ticket = new Ticket(ticketId, ticketPool, sellStartDate, saleEndDate, location, organizer, price, false);
+                    Ticket ticket = new Ticket(ticketId, ticketPool, sellStartDate, saleEndDate, location, organizer, price, false, -1);
                     tickets.add(ticket);
                 }
             }
@@ -539,27 +539,26 @@ public class Facade implements IModel {
     @Override
     public Ticket[] GetTicketForSell(int userId) {
         String sql = "SELECT r.biletyid AS ticket_id, " +
-                "b.pule_biletowid, " +
+                "b.pule_biletowid, b.uzytkownicyid," +
                 "p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +
                 "e.miejsce, e.organizator, " +
                 "r.cena AS resell_price " +
                 "FROM public.bilety_do_odsprzedania r " +
                 "JOIN public.bilety b ON r.biletyid = b.id " +
                 "JOIN public.pule_biletow p ON b.pule_biletowid = p.id " +
-                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id " +
-                "WHERE b.uzytkownicyid != ?";
+                "JOIN public.wydarzenia e ON p.wydarzeniaid = e.id ";
 
         List<Ticket> tickets = new ArrayList<>();
 
         try {
             Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, userId);
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 String ticketId = resultSet.getString("ticket_id");
                 int poolId = resultSet.getInt("pule_biletowid");
+                int userIdResell = resultSet.getInt("uzytkownicyid");
                 String sellStartDate = resultSet.getString("datarozpoczeciasprzedazy");
                 String saleEndDate = resultSet.getString("datazakonczeniesprzedazy");
                 String location = resultSet.getString("miejsce");
@@ -569,7 +568,7 @@ public class Facade implements IModel {
                 var ticketPool = new TicketPool(poolId, 0, 0, 0, sellStartDate, saleEndDate, false, 0, 0);
 
                 // Tworzenie obiektu Ticket
-                Ticket ticket = new Ticket(ticketId, ticketPool, sellStartDate, saleEndDate, location, organizer, resellPrice, true);
+                Ticket ticket = new Ticket(ticketId, ticketPool, sellStartDate, saleEndDate, location, organizer, resellPrice, true, userIdResell);
                 tickets.add(ticket);
             }
         } catch (SQLException e) {
@@ -616,4 +615,42 @@ public class Facade implements IModel {
 
     }
 
+    @Override
+    public void BuyTicketFromResell(UUID ticketId, int newOwnerid){
+        String procedureCall = "UPDATE public.bilety SET uzytkownicyid = ? WHERE id = ? ";
+
+        try (Connection connection = getConnection();
+             CallableStatement callableStatement = connection.prepareCall(procedureCall)) {
+
+            callableStatement.setInt(1, newOwnerid);
+            callableStatement.setObject(2, ticketId);
+
+            callableStatement.execute();
+            System.out.println("Bilet został pomyślnie dodany.");
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas dodawania biletu: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void DeleteTicketFromResell(UUID ticketId) {
+        String query = "DELETE FROM public.bilety_do_odsprzedania WHERE biletyid = ?";
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setObject(1, ticketId); // Ustawienie UUID jako obiektu
+
+            int affectedRows = preparedStatement.executeUpdate();
+            if (affectedRows > 0) {
+                System.out.println("Bilet został usunięty z odsprzedaży.");
+            } else {
+                System.out.println("Nie znaleziono biletu do usunięcia.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas usuwania biletu: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }
