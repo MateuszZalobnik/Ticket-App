@@ -627,11 +627,6 @@ public class Facade implements IModel {
     }
 
     @Override
-    public void AddBlockedUsers(ArrayList<User> blockedUsers) {
-
-    }
-
-    @Override
     public EventDetails GetEventDetailsById(int eventId) {
         String sql = "SELECT e.id, e.datawydarzeniastart, e.datawydarzeniakoniec, e.miejsce, e.organizator, e.uzytkownicyid, " +
                 "p.id AS pool_id, p.iloscbiletow, p.cenabiletu, p.datarozpoczeciasprzedazy, p.datazakonczeniesprzedazy, " +

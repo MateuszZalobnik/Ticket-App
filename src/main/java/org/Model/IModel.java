@@ -69,8 +69,6 @@ public interface IModel {
 
     ArrayList<User> SearchUsersInDataBase(String login);
 
-    void AddBlockedUsers(ArrayList<User> blockedUsers);
-
     EventDetails GetEventDetailsById(int eventId);
 	void BuyTicketFromResell(UUID ticketId, int newOwnerid);
 
