@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Facade implements IModel {
 
-    final String connectionString = "jdbc:postgresql://localhost:5432/ticket-app";
+    final String connectionString = "jdbc:postgresql://localhost:5432/testv2";
     private Properties props;
 
 
